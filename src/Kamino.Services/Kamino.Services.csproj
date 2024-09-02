@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\Kamino.Repo.Npgsql\Kamino.Repo.Npgsql.csproj" />
+    <ProjectReference Include="..\Kamino.Repo\Kamino.Repo.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
