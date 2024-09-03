@@ -1,0 +1,27 @@
+services:
+  pgsqldb:
+    image: postgres:16
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - type: volume
+        source: pgsqldata
+        target: /var/lib/postgresql/data
+        volume:
+          nocopy: true
+    ports:
+      - "8089:5432"
+  app:
+    image: kamino
+    build: .
+    restart: unless-stopped
+    env_file:
+      - .env
+    links:
+      - pgsqldb
+    ports:
+      - "8088:8080"
+
+volumes:
+  pgsqldata:
