@@ -8,7 +8,7 @@ public class PostsService(Context context) : IPostsService
 {
     public async Task<IEnumerable<Post>> GetPublicPostsAsync()
     {
-        var now = DateTime.Now;
+        var now = DateTime.UtcNow;
         var posts = await context.Posts.WherePublished(now).WhereNotTombstoned().ToListAsync();
 
         return posts;
@@ -16,7 +16,7 @@ public class PostsService(Context context) : IPostsService
 
     public async Task<Post> GetPublicPostByIdAsync(Guid id)
     {
-        var now = DateTime.Now;
+        var now = DateTime.UtcNow;
         var posts = await context.Posts.WhereIdMatch(id).ToListAsync();
 
         return SinglePublicPost(posts, now);
