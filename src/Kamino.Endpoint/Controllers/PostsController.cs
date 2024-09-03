@@ -2,7 +2,7 @@ using Kamino.Services;
 using Medo;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Kamino
+namespace Kamino.Endpoint
 {
     [Route("p")]
     public class PostsController(IPostsService postsService) : Controller
