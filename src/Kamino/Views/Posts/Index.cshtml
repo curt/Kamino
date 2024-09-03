@@ -1,0 +1,21 @@
+﻿@using Kamino.Entities
+@model IEnumerable<Post>
+
+<h1>Posts</h1>
+
+@if (Model.Any())
+{
+    <ul>
+    @foreach (var post in Model)
+        {
+            <li>
+                <span>@post.PublishedAt</span>
+                <span><a href=@post.Uri>@post.Title</a></span>
+            </li>
+        }
+    </ul>
+}
+else
+{
+    <p>No posts.</p>
+}
