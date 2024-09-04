@@ -1,3 +1,5 @@
+using Fluid;
+using Fluid.MvcViewEngine;
 using Kamino.Repo;
 using Kamino.Repo.Npgsql;
 using Kamino.Services;
@@ -17,10 +19,17 @@ var config = builder.Configuration;
     );
 }
 
-builder.Services.AddScoped<IPostsService, PostsService>();
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+builder.Services.AddScoped<IPostsService, PostsService>();
+builder.Services.Configure<FluidMvcViewOptions>
+(
+    options =>
+    {
+        options.TemplateOptions.MemberAccessStrategy = new UnsafeMemberAccessStrategy();
+    }
+);
+builder.Services.AddControllersWithViews().AddFluid();
 
 var app = builder.Build();
 

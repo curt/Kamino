@@ -1,4 +1,4 @@
-namespace Kamino.Models;
+namespace Kamino.Endpoint.Models;
 
 public class ErrorViewModel
 {
