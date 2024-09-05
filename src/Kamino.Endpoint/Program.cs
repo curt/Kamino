@@ -10,7 +10,8 @@ var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
 
 {
-    var pgsqlPassword = config["POSTGRES_PASSWORD"] ?? "kamino";
+    // See https://stackoverflow.com/a/76697983.
+    var pgsqlPassword = config["POSTGRES_PASSWORD"];
     var connectionString = $"Host=pgsqldb;Database=kamino;Username=kamino;Password={pgsqlPassword}";
     var dataSource = DbContextOptionsBuilderHelpers.CreateNpgsqlDataSourceBuilder(connectionString).Build();
     builder.Services.AddDbContext<Context, NpgsqlContext>
@@ -18,7 +19,6 @@ var config = builder.Configuration;
         options => { options.UseNpgsql(dataSource); }
     );
 }
-
 
 // Add services to the container.
 builder.Services.AddScoped<IPostsService, PostsService>();
