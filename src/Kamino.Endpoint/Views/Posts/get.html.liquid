@@ -1,20 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>{{ Model.Title }}</title>
-</head>
-<body>
-    <article>
-        <h1>{{ Model.Title }}</h1>
-        <main>
-            <p>{{ Model.Content }}</p>
-        </main>
-        <footer>
-            <em>{{ Model.PublishedAt | date: '%+' }}</em> &mdash;
-            <span>{{ Model.AuthorName }}</span>
-        </footer>
-    </article>
-</body>
-</html>
+{% layout "../Shared/_layout.html" %}
+<article>
+    <h1>{{ Model.Title }}</h1>
+    <main>
+        <p>{{ Model.Content }}</p>
+    </main>
+    <footer>
+        <em>{{ Model.PublishedAt | date: '%+' }}</em> &mdash;
+        <span>{{ Model.AuthorName }}</span>
+    </footer>
+</article>
