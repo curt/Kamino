@@ -1,5 +1,6 @@
 using Kamino.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Kamino.Repo;
 
@@ -11,19 +12,25 @@ public abstract class Context : DbContext
 
     public DbSet<Profile> Profiles { get; set; }
     public DbSet<Post> Posts { get; set; }
+    public DbSet<Place> Places { get; set; }
+    public DbSet<Tag> Tags { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Post>().HasOne(post => post.Author).WithMany(profile => profile.Authored).IsRequired();
-        modelBuilder.Entity<Post>(e => { e.Property(p => p.Id).HasValueGenerator<Uuid7ValueGenerator>(); });
-        modelBuilder.Entity<Post>(e => { e.Property(p => p.Uri).IsRequired(); });
-        modelBuilder.Entity<Post>(e => { e.HasIndex(p => p.Uri).IsUnique(); });
-        modelBuilder.Entity<Post>(e => { e.Property(p => p.Url).IsRequired(); });
+        // Build base models
+        modelBuilder.Entity<Profile>().IsBasicEntity();
+        modelBuilder.Entity<Post>().IsBasicEntity();
+        modelBuilder.Entity<Place>().IsBasicEntity();
+        modelBuilder.Entity<Tag>().IsIdentifiableEntity();
 
-        modelBuilder.Entity<Profile>(e => { e.Property(p => p.Id).HasValueGenerator<Uuid7ValueGenerator>(); });
-        modelBuilder.Entity<Profile>(e => { e.Property(p => p.Uri).IsRequired(); });
-        modelBuilder.Entity<Profile>(e => { e.HasIndex(p => p.Uri).IsUnique(); });
-        modelBuilder.Entity<Profile>(e => { e.Property(p => p.Url).IsRequired(); });
+        // Build one-to-many relationships
+        modelBuilder.Entity<Post>().HasOne(p => p.Author).WithMany(p => p.PostsAuthored).IsRequired();
+        modelBuilder.Entity<Place>().HasOne(p => p.Author).WithMany(p => p.PlacesAuthored).IsRequired();
+
+        // Build many-to-many relationships
+        modelBuilder.Entity<Post>().HasMany(p => p.Places).WithMany(p => p.Posts).UsingEntity("PostsPlaces");
+        modelBuilder.Entity<Post>().HasMany(p => p.Tags).WithMany(p => p.Posts).UsingEntity("PostsTags");
+        modelBuilder.Entity<Place>().HasMany(p => p.Tags).WithMany(p => p.Places).UsingEntity("PlacesTags");
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

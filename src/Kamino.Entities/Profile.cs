@@ -1,15 +1,16 @@
 namespace Kamino.Entities;
 
-public class Profile : ICreatable, IModifiable, ITombstonable
+public class Profile : BasicEntity
 {
-    public Guid? Id { get; set; }
-    public string? Uri { get; set; }
-    public string? Url { get; set; }
     public string? Name { get; set; }
+    public string? DisplayName { get; set; }
+    public string? Summary { get; set; }
+    public string? PublicKeyId { get; set; }
+    public string? PublicKey { get; set; }
+    public string? Inbox { get; set; }
+    public string? PrivateKey { get; set; }
     public DateTime? CachedAt { get; set; }
-    public DateTime? CreatedAt { get; set; }
-    public DateTime? ModifiedAt { get; set; }
-    public DateTime? TombstonedAt { get; set; }
 
-    public virtual ICollection<Post> Authored { get; } = [];
+    public virtual ICollection<Post> PostsAuthored { get; } = [];
+    public virtual ICollection<Place> PlacesAuthored { get; } = [];
 }
