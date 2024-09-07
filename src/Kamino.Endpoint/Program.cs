@@ -16,7 +16,7 @@ var config = builder.Configuration;
     var dataSource = DbContextOptionsBuilderHelpers.CreateNpgsqlDataSourceBuilder(connectionString).Build();
     builder.Services.AddDbContext<Context, NpgsqlContext>
     (
-        options => { options.UseNpgsql(dataSource); }
+        options => { options.UseNpgsql(dataSource, options => options.UseNetTopologySuite()); }
     );
 }
 
