@@ -1,5 +1,4 @@
 using Kamino.Entities;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Kamino.Repo;
