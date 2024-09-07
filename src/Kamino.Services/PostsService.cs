@@ -9,7 +9,17 @@ public class PostsService(Context context) : IPostsService
     public async Task<IEnumerable<Post>> GetPublicPostsAsync()
     {
         var now = DateTime.UtcNow;
-        var posts = await context.Posts.WherePublished(now).WhereNotTombstoned().Include(post => post.Author).ToListAsync();
+
+        var profiles = context.Profiles.WhereLocal();
+
+        var posts = await context.Posts
+            .Join(profiles, post => post.Author, profile => profile, (post, profile) => post)
+            .WherePublished(now)
+            .WhereNotTombstoned()
+            .Include(post => post.Author)
+            .Include(post => post.Places)
+            .Include(post => post.Tags)
+            .ToListAsync();
 
         return posts;
     }
@@ -17,14 +27,23 @@ public class PostsService(Context context) : IPostsService
     public async Task<Post> GetPublicPostByIdAsync(Guid id)
     {
         var now = DateTime.UtcNow;
-        var posts = await context.Posts.WhereIdMatch(id).Include(post => post.Author).ToListAsync();
+
+        var profiles = context.Profiles.WhereLocal();
+
+        var posts = await context.Posts
+            .Join(profiles, post => post.Author, profile => profile, (post, profile) => post)
+            .WhereIdMatch(id)
+            .Include(post => post.Author)
+            .Include(post => post.Places)
+            .Include(post => post.Tags)
+            .ToListAsync();
 
         return SinglePublicPost(posts, now);
     }
 
-    private static Post SinglePublicPost(IEnumerable<Post> posts, DateTime before)
+    private static Post SinglePublicPost(List<Post> posts, DateTime before)
     {
-        if (!posts.Any())
+        if (posts.Count == 0)
         {
             throw new NotFoundException();
         }
