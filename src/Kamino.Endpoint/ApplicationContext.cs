@@ -13,6 +13,15 @@ public class ApplicationContext(DbContextOptions<ApplicationContext> options, IC
         var pgsqlPassword = config["POSTGRES_PASSWORD"];
         var connectionString = $"Host=pgsqldb;Database=kamino;Username=kamino;Password={pgsqlPassword}";
         var dataSource = DbContextOptionsBuilderHelpers.CreateNpgsqlDataSourceBuilder(connectionString).Build();
-        builder.UseNpgsql(dataSource, options => options.UseNetTopologySuite());
+
+        builder.UseNpgsql
+        (
+            dataSource,
+            options =>
+            {
+                options.UseNetTopologySuite();
+                options.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
+            }
+        );
     }
 }
