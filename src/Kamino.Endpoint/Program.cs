@@ -1,23 +1,13 @@
 using Fluid;
 using Fluid.MvcViewEngine;
 using Kamino.Endpoint;
-using Kamino.Repo.Npgsql;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 var config = builder.Configuration;
 
-{
-    // See https://stackoverflow.com/a/76697983.
-    var pgsqlPassword = config["POSTGRES_PASSWORD"];
-    var connectionString = $"Host=pgsqldb;Database=kamino;Username=kamino;Password={pgsqlPassword}";
-    var dataSource = DbContextOptionsBuilderHelpers.CreateNpgsqlDataSourceBuilder(connectionString).Build();
-    builder.Services.AddDbContextFactory<ApplicationContext, ApplicationContextFactory>
-    (
-        options => { options.UseNpgsql(dataSource, options => options.UseNetTopologySuite()); }
-    );
-}
+builder.Services.AddDbContextFactory<ApplicationContext, ApplicationContextFactory>();
 
 // Add services to the container.
 builder.Services.Configure<FluidMvcViewOptions>
