@@ -1,5 +1,5 @@
 namespace Kamino.Services;
 
-public class ProfilesService() : IProfilesService
+public class ProfilesService()
 {
 }

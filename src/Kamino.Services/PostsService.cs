@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Kamino.Services;
 
-public class PostsService(Context context) : IPostsService
+public class PostsService(Context context)
 {
     public async Task<IEnumerable<Post>> GetPublicPostsAsync()
     {
@@ -39,6 +39,11 @@ public class PostsService(Context context) : IPostsService
             .ToListAsync();
 
         return SinglePublicPost(posts, now);
+    }
+
+    public Task<Post> CreateLocalPost(Post post)
+    {
+        throw new NotImplementedException();
     }
 
     private static Post SinglePublicPost(List<Post> posts, DateTime before)
