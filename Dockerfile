@@ -12,7 +12,9 @@ RUN dotnet publish ./src/Kamino.Endpoint/Kamino.Endpoint.csproj -a $TARGETARCH -
 # https://github.com/dotnet/dotnet-docker/blob/main/samples/enable-globalization.md
 # final stage/image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine
+RUN apk --no-cache add postgresql-client
 EXPOSE 8080
 WORKDIR /app
 COPY --from=build /app .
-ENTRYPOINT ["./Kamino.Endpoint"]
+COPY ./docker-entrypoint.sh .
+ENTRYPOINT ./docker-entrypoint.sh
