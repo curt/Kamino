@@ -9,7 +9,7 @@ public class PostsService(Context context) : IPostsService
     public async Task<IEnumerable<Post>> GetPublicPostsAsync()
     {
         var now = DateTime.UtcNow;
-        var posts = await context.Posts.WherePublished(now).WhereNotTombstoned().Include(post => post.Profile).ToListAsync();
+        var posts = await context.Posts.WherePublished(now).WhereNotTombstoned().Include(post => post.Author).ToListAsync();
 
         return posts;
     }
@@ -17,7 +17,7 @@ public class PostsService(Context context) : IPostsService
     public async Task<Post> GetPublicPostByIdAsync(Guid id)
     {
         var now = DateTime.UtcNow;
-        var posts = await context.Posts.WhereIdMatch(id).Include(post => post.Profile).ToListAsync();
+        var posts = await context.Posts.WhereIdMatch(id).Include(post => post.Author).ToListAsync();
 
         return SinglePublicPost(posts, now);
     }
