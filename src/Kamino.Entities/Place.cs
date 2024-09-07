@@ -14,5 +14,5 @@ public class Place : BasicEntity
     public virtual Profile? Author { get; set; }
 
     public virtual ICollection<Post> Posts { get; } = [];
-    public virtual ICollection<Post> Tags { get; } = [];
+    public virtual ICollection<Tag> Tags { get; } = [];
 }
