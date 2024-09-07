@@ -1,6 +1,7 @@
 services:
   pgsqldb:
-    image: postgres:16
+    image: postgis
+    build: ./postgis
     restart: unless-stopped
     env_file:
       - .env
