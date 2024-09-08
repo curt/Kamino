@@ -3,9 +3,9 @@
     <h1>Posts</h1>
     {% for post in Model -%}
     <article>
-        <h2><a href={{ post.Uri }}>{{ post.Title }}</a></h2>
+        <h2>{{ post.Title }}</h2>
         <p>
-            <em>{{ post.PublishedAt | date: '%+' }}</em> &mdash;
+            <em><a href="{{ post.Uri }}">{{ post.PublishedAt | date: '%+' }}</a></em> &mdash;
             <span>{{ post.Summary }}</span>
         </p>
     </article>
