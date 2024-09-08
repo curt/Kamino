@@ -44,24 +44,30 @@ public class PostsApiService(Context context, Uri endpoint)
             .SingleOrDefaultAsync() ?? throw new BadRequestException();
     }
 
-    private void AfterAddPost(Post post)
+    private static void AfterAddPost(Post post)
     {
-        var uri = PostUriFromGuid(post.Id);
+        if (post.Id != null)
+        {
+            var guid = post.Id.Value;
 
-        post.Uri = uri;
-        post.Url = uri;
+            var uri = PostUriFromGuid(guid);
+            post.Uri = uri;
+            post.Url = uri;
+
+            var contextUri = ContextUriFromGuid(guid);
+            post.ContextUri ??= contextUri;
+        }
     }
 
-    private static string? PostUriFromGuid(Guid? guid)
-    {
-        if (guid == null)
-        {
-            return null;
-        }
+    private static string PostUriFromGuid(Guid guid) => UriFromGuid(guid, "/p/{0}");
 
+    private static string ContextUriFromGuid(Guid guid) => UriFromGuid(guid, "/ctx/{0}");
+
+    private static string UriFromGuid(Guid guid, string format)
+    {
         var uri = new UriBuilder(Constants.LocalProfileUri)
         {
-            Path = $"/p/{guid.Value.ToId22()}"
+            Path = string.Format(format, guid.ToId22())
         };
 
         return uri.Uri.ToString();
