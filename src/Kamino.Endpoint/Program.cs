@@ -2,7 +2,9 @@ using AspNetCore.Authentication.Basic;
 using Fluid;
 using Fluid.MvcViewEngine;
 using Kamino.Endpoint;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,7 +24,28 @@ builder.Services.Configure<FluidMvcViewOptions>
         options.TemplateOptions.MemberAccessStrategy = new UnsafeMemberAccessStrategy();
     }
 );
-builder.Services.AddControllersWithViews().AddFluid();
+
+builder.Services.AddControllersWithViews
+(
+    options =>
+    {
+        // See https://stackoverflow.com/a/59813295
+        var jsonInputFormatter = options.InputFormatters
+            .OfType<SystemTextJsonInputFormatter>()
+            .Single();
+
+        jsonInputFormatter.SupportedMediaTypes.Add("application/ld+json");
+        jsonInputFormatter.SupportedMediaTypes.Add("application/activity+json");
+    }
+)
+.AddJsonOptions
+(
+    options =>
+    {
+        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+    }
+)
+.AddFluid();
 
 var app = builder.Build();
 
