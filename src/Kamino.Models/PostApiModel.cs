@@ -2,6 +2,7 @@ namespace Kamino.Models;
 
 public class PostApiModel
 {
+    public Guid? Id { get; set; }
     public string? Uri { get; set; }
     public string? Url { get; set; }
     public string? PostType { get; set; }

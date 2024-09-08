@@ -17,6 +17,7 @@ public class PostApiModelFactory
     {
         return new PostApiModel()
         {
+            Id = post.Id,
             Uri = _internalizer.Externalize(post.Uri),
             Url = _internalizer.Externalize(post.Url),
             PostType = post.PostType.ToString(),
