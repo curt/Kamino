@@ -1,3 +1,4 @@
+using AspNetCore.Authentication.Basic;
 using Fluid;
 using Fluid.MvcViewEngine;
 using Kamino.Endpoint;
@@ -8,6 +9,10 @@ var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
 
 builder.Services.AddDbContextFactory<ApplicationContext, ApplicationContextFactory>();
+builder.Services.AddAuthentication(BasicDefaults.AuthenticationScheme).AddBasic<BasicUserValidationService>
+(
+    options => { options.Realm = "Kamino"; }
+);
 
 // Add services to the container.
 builder.Services.Configure<FluidMvcViewOptions>
