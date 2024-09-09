@@ -43,6 +43,7 @@ builder.Services.AddControllersWithViews
     options =>
     {
         options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+        options.JsonSerializerOptions.TypeInfoResolver = new AlphabeticalOrderJsonTypeInfoResolver();
     }
 )
 .AddFluid();

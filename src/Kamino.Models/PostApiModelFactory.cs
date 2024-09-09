@@ -2,27 +2,18 @@ using Kamino.Entities;
 
 namespace Kamino.Models;
 
-public class PostApiModelFactory
+public class PostApiModelFactory(Uri endpoint) : ModelFactoryBase<Post, PostApiModel>(endpoint)
 {
-    private UriInternalizer _internalizer;
-
-    public PostApiModelFactory(Uri endpoint)
-    {
-        _internalizer = new UriInternalizer(endpoint);
-    }
-
-    public UriInternalizer UriInternalizer { get { return _internalizer; } }
-
-    public PostApiModel Create(Post post)
+    public override PostApiModel Create(Post post)
     {
         return new PostApiModel()
         {
             Id = post.Id,
-            Uri = _internalizer.Externalize(post.Uri),
-            Url = _internalizer.Externalize(post.Url),
+            Uri = UriInternalizer.Externalize(post.Uri),
+            Url = UriInternalizer.Externalize(post.Url),
             PostType = post.PostType.ToString(),
-            ContextUri = _internalizer.Externalize(post.ContextUri),
-            InReplyToUri = _internalizer.Externalize(post.InReplyToUri),
+            ContextUri = UriInternalizer.Externalize(post.ContextUri),
+            InReplyToUri = UriInternalizer.Externalize(post.InReplyToUri),
             Slug = post.Slug,
             Title = post.Title,
             Summary = post.Summary,
@@ -32,21 +23,21 @@ public class PostApiModelFactory
             EndsAt = post.EndsAt,
             PublishedAt = post.PublishedAt,
             EditedAt = post.EditedAt,
-            AuthorUri = _internalizer.Externalize(post.Author?.Uri),
-            Places = post.Places.Select(p => _internalizer.Externalize(p?.Uri) ?? string.Empty),
+            AuthorUri = UriInternalizer.Externalize(post.Author?.Uri),
+            Places = post.Places.Select(p => UriInternalizer.Externalize(p?.Uri) ?? string.Empty),
             Tags = post.Tags.Select(t => t?.Title ?? string.Empty)
         };
     }
 
-    public Post Parse(PostApiModel model)
+    public override Post Parse(PostApiModel model)
     {
         return new Post()
         {
-            Uri = _internalizer.Internalize(model.Uri),
-            Url = _internalizer.Internalize(model.Url),
+            Uri = UriInternalizer.Internalize(model.Uri),
+            Url = UriInternalizer.Internalize(model.Url),
             PostType = Enum.TryParse(model.PostType, out PostType postType) ? postType : PostType.Note,
-            ContextUri = _internalizer.Internalize(model.ContextUri),
-            InReplyToUri = _internalizer.Internalize(model.InReplyToUri),
+            ContextUri = UriInternalizer.Internalize(model.ContextUri),
+            InReplyToUri = UriInternalizer.Internalize(model.InReplyToUri),
             Slug = model.Slug,
             Title = model.Title,
             Summary = model.Summary,

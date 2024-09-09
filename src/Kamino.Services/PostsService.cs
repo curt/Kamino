@@ -1,4 +1,5 @@
 using Kamino.Entities;
+using Kamino.Models;
 using Kamino.Repo;
 using Microsoft.EntityFrameworkCore;
 
@@ -22,6 +23,13 @@ public class PostsService(Context context)
             .ToListAsync();
 
         return posts;
+    }
+
+    public async Task<TModel> GetSinglePublicPostByIdAsync<TModel>(Guid id, ModelFactoryBase<Post, TModel> factory)
+    {
+        var post = await GetPublicPostByIdAsync(id);
+
+        return factory.Create(post);
     }
 
     public async Task<Post> GetPublicPostByIdAsync(Guid id)
