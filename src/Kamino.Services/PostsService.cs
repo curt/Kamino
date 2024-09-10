@@ -15,7 +15,7 @@ public class PostsService(Context context)
             .WhereNotTombstoned()
             .ToListAsync();
 
-        return posts.Select(post => factory.Create(post));
+        return posts.Select(factory.Create);
     }
 
     public async Task<TModel> GetSinglePublicPostByIdAsync<TModel>(Guid id, ModelFactoryBase<Post, TModel> factory)
