@@ -4,6 +4,8 @@ namespace Kamino.Models;
 
 public class UriInternalizer(Uri endpoint)
 {
+    public string ExternalHost { get => endpoint.Host; }
+
     public string? Externalize(string? uriString)
     {
         if (uriString != null)
