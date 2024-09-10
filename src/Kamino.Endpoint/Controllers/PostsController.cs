@@ -20,8 +20,9 @@ public class PostsController(IDbContextFactory<ApplicationContext> contextFactor
         {
             var postsService = new PostsService(context);
             var posts = await postsService.GetPublicPostsAsync();
+            var factory = new PostViewModelFactory(Request.GetEndpoint());
 
-            model = posts.Select(post => new PostViewModel(post, GetEndpoint()));
+            model = posts.Select(post => factory.Create(post));
         }
 
         return View("index.html", model);
@@ -36,13 +37,10 @@ public class PostsController(IDbContextFactory<ApplicationContext> contextFactor
         return await Contextualize(() => GetHtml(guid), () => GetJson(guid));
     }
 
-    private async Task<IActionResult> GetHtml(Guid guid)
+    private async Task<IActionResult> GetHtml(Guid id)
     {
-        using var context = contextFactory.CreateDbContext();
-
-        var postsService = new PostsService(context);
-        var post = await postsService.GetPublicPostByIdAsync(guid);
-        var model = new PostViewModel(post, GetEndpoint());
+        var factory = new PostViewModelFactory(Request.GetEndpoint());
+        var model = await GetModel(id, factory);
 
         return View("get.html", model);
     }
@@ -64,6 +62,4 @@ public class PostsController(IDbContextFactory<ApplicationContext> contextFactor
 
         return model;
     }
-
-    private Uri GetEndpoint() => (new UriBuilder(Request.Scheme, Request.Host.Host, Request.Host.Port ?? -1)).Uri;
 }
