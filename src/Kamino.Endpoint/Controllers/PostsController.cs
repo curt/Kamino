@@ -1,4 +1,3 @@
-using Kamino.Endpoint.Models;
 using Kamino.Entities;
 using Kamino.Models;
 using Kamino.Services;
@@ -9,32 +8,46 @@ using Microsoft.EntityFrameworkCore;
 namespace Kamino.Endpoint.Controllers;
 
 [Route("p")]
+[ResponseCache(Duration = 30, Location = ResponseCacheLocation.Any, NoStore = false)]
 public class PostsController(IDbContextFactory<ApplicationContext> contextFactory) : ContextualController
 {
-    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public async Task<IActionResult> Index()
     {
-        IEnumerable<PostViewModel> model;
-
-        using (var context = contextFactory.CreateDbContext())
-        {
-            var postsService = new PostsService(context);
-            var posts = await postsService.GetPublicPostsAsync();
-            var factory = new PostViewModelFactory(Request.GetEndpoint());
-
-            model = posts.Select(post => factory.Create(post));
-        }
-
-        return View("index.html", model);
+        return await Contextualize(() => IndexHtml(), () => IndexJson());
     }
 
     [Route("{id:regex(^[[1-9A-Za-z]]{{22}}$)}")]
-    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public async Task<IActionResult> Get(string id)
     {
         var guid = Uuid7.FromId22String(id).ToGuid();
 
         return await Contextualize(() => GetHtml(guid), () => GetJson(guid));
+    }
+
+    private async Task<IActionResult> IndexHtml()
+    {
+        var factory = new PostViewModelFactory(Request.GetEndpoint());
+        var model = await IndexModel(factory);
+
+        return View("index.html", model);
+    }
+
+    private async Task<IActionResult> IndexJson()
+    {
+        var factory = new PostActivityModelFactory(Request.GetEndpoint());
+        var model = await IndexModel(factory);
+
+        return Json(model.Select(m => Contextify(m)));
+    }
+
+    private async Task<IEnumerable<TModel>> IndexModel<TModel>(ModelFactoryBase<Post, TModel> factory)
+    {
+        using var context = contextFactory.CreateDbContext();
+
+        var postsService = new PostsService(context);
+        var model = await postsService.GetPublicPostsAsync(factory);
+
+        return model;
     }
 
     private async Task<IActionResult> GetHtml(Guid id)

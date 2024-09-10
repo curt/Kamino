@@ -26,7 +26,7 @@ public abstract class ContextualController : Controller
         return await html();
     }
 
-    protected ActivityModelBase Contextify(ActivityModelBase core)
+    protected TModel Contextify<TModel>(TModel core) where TModel : ActivityModelBase
     {
         core.JsonLdContext = "https://www.w3.org/ns/activitystreams";
 

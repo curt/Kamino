@@ -24,7 +24,7 @@ public class PostViewModelFactory(Uri endpoint) : ModelFactoryBase<Post, PostVie
             EditedAt = post.EditedAt,
             AuthorUri = UriInternalizer.Externalize(post.Author?.Uri),
             AuthorUrl = UriInternalizer.Externalize(post.Author?.Url),
-            AuthorName = UriInternalizer.Externalize(post.Author?.DisplayName),
+            AuthorName = post.Author?.DisplayName,
         };
     }
 

@@ -7,51 +7,44 @@ namespace Kamino.Services;
 
 public class PostsService(Context context)
 {
-    public async Task<IEnumerable<Post>> GetPublicPostsAsync()
+    public async Task<IEnumerable<TModel>> GetPublicPostsAsync<TModel>(ModelFactoryBase<Post, TModel> factory)
     {
         var now = DateTime.UtcNow;
-
-        var profiles = context.Profiles.WhereLocal();
-
-        var posts = await context.Posts
-            .Join(profiles, post => post.Author, profile => profile, (post, profile) => post)
+        var posts = await PublicPostsQueryBase()
             .WherePublished(now)
             .WhereNotTombstoned()
-            .Include(post => post.Author)
-            .Include(post => post.Places)
-            .Include(post => post.Tags)
             .ToListAsync();
 
-        return posts;
+        return posts.Select(post => factory.Create(post));
     }
 
     public async Task<TModel> GetSinglePublicPostByIdAsync<TModel>(Guid id, ModelFactoryBase<Post, TModel> factory)
     {
-        var post = await GetPublicPostByIdAsync(id);
-
-        return factory.Create(post);
-    }
-
-    public async Task<Post> GetPublicPostByIdAsync(Guid id)
-    {
         var now = DateTime.UtcNow;
-
-        var profiles = context.Profiles.WhereLocal();
-
-        var posts = await context.Posts
-            .Join(profiles, post => post.Author, profile => profile, (post, profile) => post)
+        var posts = await PublicPostsQueryBase()
             .WhereIdMatch(id)
-            .Include(post => post.Author)
-            .Include(post => post.Places)
-            .Include(post => post.Tags)
             .ToListAsync();
 
-        return SinglePublicPost(posts, now);
+        var post = SinglePublicPost(posts, now);
+
+        return factory.Create(post);
     }
 
     public Task<Post> CreateLocalPost(Post post)
     {
         throw new NotImplementedException();
+    }
+
+    private IQueryable<Post> PublicPostsQueryBase()
+    {
+        var profiles = context.Profiles.WhereLocal();
+        var posts = context.Posts
+            .Join(profiles, post => post.Author, profile => profile, (post, profile) => post)
+            .Include(post => post.Author)
+            .Include(post => post.Places)
+            .Include(post => post.Tags);
+
+        return posts;
     }
 
     private static Post SinglePublicPost(List<Post> posts, DateTime before)
