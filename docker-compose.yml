@@ -1,6 +1,6 @@
 services:
   pgsqldb:
-    image: postgis
+    image: ghcr.io/curt/postgis:latest
     build: ./postgis
     restart: unless-stopped
     env_file:
@@ -14,7 +14,7 @@ services:
     ports:
       - "8089:5432"
   app:
-    image: kamino
+    image: ghcr.io/curt/kamino:latest
     build: .
     restart: unless-stopped
     env_file:

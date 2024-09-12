@@ -12,6 +12,7 @@ RUN dotnet publish ./src/Kamino.Endpoint/Kamino.Endpoint.csproj -a $TARGETARCH -
 # https://github.com/dotnet/dotnet-docker/blob/main/samples/enable-globalization.md
 # final stage/image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine
+LABEL org.opencontainers.image.source https://github.com/curt/Kamino
 RUN apk --no-cache add postgresql-client
 EXPOSE 8080
 WORKDIR /app
