@@ -20,6 +20,7 @@ public class ApplicationContext(DbContextOptions<ApplicationContext> options, IC
             options =>
             {
                 options.UseNetTopologySuite();
+                options.MigrationsAssembly(typeof(NpgsqlContext).Assembly.FullName);
                 options.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
             }
         );
