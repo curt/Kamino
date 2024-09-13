@@ -1,0 +1,20 @@
+{% layout "../Shared/_layout.html" %}
+<article>
+    <h1>{{ Model.StatusCode }}</h1>
+    <main>
+{% case Model.StatusCode %}
+    {% when 400 %}
+        <p>What you seek may exist, but you did not request properly.</p>
+    {% when 401 %}
+        <p>What you seek may exist, but you did not authenticate yourself properly.</p>
+    {% when 403 %}
+        <p>What you seek may exist, but you are forbidden to see it.</p>
+    {% when 404 %}
+        <p>What you seek was not found.</p>
+    {% when 410 %}
+        <p>What you seek may have existed, but now it is gone.</p>
+    {% else %}
+        <p>What you seek was indeterminate.</p>
+{% endcase %}
+    </main>
+</article>

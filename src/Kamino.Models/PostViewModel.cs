@@ -1,6 +1,6 @@
 namespace Kamino.Models;
 
-public class PostViewModel
+public class PostViewModel : ViewModelBase
 {
     public Guid? Id { get; set; }
     public string? Uri { get; set; }
@@ -9,7 +9,6 @@ public class PostViewModel
     public string? ContextUri { get; set; }
     public string? InReplyToUri { get; set; }
     public string? Slug { get; set; }
-    public string? Title { get; set; }
     public string? Summary { get; set; }
     public string? Content { get; set; }
     public DateTime? StartsAt { get; set; }

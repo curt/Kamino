@@ -50,6 +50,8 @@ builder.Services.AddControllersWithViews
 (
     options =>
     {
+        options.Filters.Add<ServiceExceptionFilter>();
+
         // See https://stackoverflow.com/a/59813295.
         var jsonInputFormatter = options.InputFormatters
             .OfType<SystemTextJsonInputFormatter>()
@@ -85,6 +87,8 @@ if (!app.Environment.IsDevelopment())
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
+
+app.UseStatusCodePagesWithReExecute("/Error/{0}");
 
 app.UseStaticFiles();
 
