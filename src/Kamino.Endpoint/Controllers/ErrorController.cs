@@ -15,6 +15,6 @@ public class ErrorController : ContextualController
             StatusCode = statusCode
         };
 
-        return View(model);
+        return View("get.html", model);
     }
 }
