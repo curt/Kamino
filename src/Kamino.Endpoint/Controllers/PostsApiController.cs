@@ -1,4 +1,5 @@
 using Kamino.Models;
+using Kamino.Repo.Npgsql;
 using Kamino.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -7,7 +8,7 @@ namespace Kamino.Endpoint.Controllers;
 
 [ApiController]
 [Route("api/posts")]
-public class PostsApiController(IDbContextFactory<ApplicationContext> contextFactory) : ControllerBase
+public class PostsApiController(IDbContextFactory<NpgsqlContext> contextFactory) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<IEnumerable<PostApiModel>>> GetAll()

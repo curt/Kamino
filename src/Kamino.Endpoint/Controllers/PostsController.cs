@@ -1,5 +1,6 @@
 using Kamino.Entities;
 using Kamino.Models;
+using Kamino.Repo.Npgsql;
 using Kamino.Services;
 using Medo;
 using Microsoft.AspNetCore.Mvc;
@@ -9,7 +10,7 @@ namespace Kamino.Endpoint.Controllers;
 
 [Route("p")]
 [ResponseCache(Duration = 30, Location = ResponseCacheLocation.Any, NoStore = false)]
-public class PostsController(IDbContextFactory<ApplicationContext> contextFactory) : ContextualController
+public class PostsController(IDbContextFactory<NpgsqlContext> contextFactory) : ContextualController
 {
     public async Task<IActionResult> Index()
     {

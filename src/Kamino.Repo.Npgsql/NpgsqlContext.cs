@@ -7,7 +7,7 @@ public class NpgsqlContext : Context
 {
     public NpgsqlContext() { }
 
-    public NpgsqlContext(DbContextOptions options) : base(options) { }
+    public NpgsqlContext(DbContextOptions<NpgsqlContext> options) : base(options) { }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

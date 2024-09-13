@@ -2,6 +2,7 @@ using AspNetCore.Authentication.Basic;
 using Fluid;
 using Fluid.MvcViewEngine;
 using Kamino.Endpoint;
+using Kamino.Repo.Npgsql;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
@@ -10,7 +11,27 @@ var builder = WebApplication.CreateBuilder(args);
 
 var config = builder.Configuration;
 
-builder.Services.AddDbContextFactory<ApplicationContext, ApplicationContextFactory>();
+builder.Services.AddDbContextFactory<NpgsqlContext, NpgsqlContextFactory>
+(
+    optionsBuilder =>
+    {
+        // See https://stackoverflow.com/a/76697983.
+        var pgsqlPassword = config["POSTGRES_PASSWORD"];
+        var connectionString = $"Host=pgsqldb;Database=kamino;Username=kamino;Password={pgsqlPassword}";
+        var dataSource = DbContextOptionsBuilderHelpers.CreateNpgsqlDataSourceBuilder(connectionString).Build();
+
+        optionsBuilder.UseNpgsql
+        (
+            dataSource,
+            npgsqlOptionsBuilder =>
+            {
+                npgsqlOptionsBuilder.UseNetTopologySuite();
+                npgsqlOptionsBuilder.MigrationsAssembly("Kamino.Repo.Npgsql");
+                npgsqlOptionsBuilder.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
+            }
+        );
+    }
+);
 builder.Services.AddAuthentication(BasicDefaults.AuthenticationScheme).AddBasic<BasicUserValidationService>
 (
     options => { options.Realm = "Kamino"; }
@@ -29,7 +50,7 @@ builder.Services.AddControllersWithViews
 (
     options =>
     {
-        // See https://stackoverflow.com/a/59813295
+        // See https://stackoverflow.com/a/59813295.
         var jsonInputFormatter = options.InputFormatters
             .OfType<SystemTextJsonInputFormatter>()
             .Single();
@@ -50,10 +71,10 @@ builder.Services.AddControllersWithViews
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
+// Migrate the database.
+using (var scope = app.Services.CreateScope())
 {
-    using var scope = app.Services.CreateScope();
-    var context = scope.ServiceProvider.GetRequiredService<ApplicationContext>();
+    var context = scope.ServiceProvider.GetRequiredService<NpgsqlContext>();
     context.Database.Migrate();
 }
 

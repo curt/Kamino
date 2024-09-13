@@ -1,5 +1,6 @@
 using Kamino.Entities;
 using Kamino.Models;
+using Kamino.Repo.Npgsql;
 using Kamino.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -8,7 +9,7 @@ namespace Kamino.Endpoint.Controllers;
 
 [Route("")]
 [ResponseCache(Duration = 30, Location = ResponseCacheLocation.Any, NoStore = false)]
-public class ProfilesController(IDbContextFactory<ApplicationContext> contextFactory) : ContextualController
+public class ProfilesController(IDbContextFactory<NpgsqlContext> contextFactory) : ContextualController
 {
     public async Task<IActionResult> Index()
     {

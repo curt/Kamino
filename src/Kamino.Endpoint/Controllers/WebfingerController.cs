@@ -1,4 +1,5 @@
 using Kamino.Models;
+using Kamino.Repo.Npgsql;
 using Kamino.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -7,7 +8,7 @@ namespace Kamino.Endpoint.Controllers;
 
 [Route(".well-known/webfinger")]
 [ResponseCache(Duration = 30, Location = ResponseCacheLocation.Any, NoStore = false)]
-public class WebfingerController(IDbContextFactory<ApplicationContext> contextFactory) : Controller
+public class WebfingerController(IDbContextFactory<NpgsqlContext> contextFactory) : Controller
 {
     public async Task<IActionResult> Index([FromQuery] string resource)
     {
