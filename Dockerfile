@@ -5,7 +5,7 @@ ARG TARGETARCH
 WORKDIR /build
 
 # copy and publish app and libraries
-COPY ./src ./src
+COPY . .
 RUN dotnet publish ./src/Kamino.Endpoint/Kamino.Endpoint.csproj -a $TARGETARCH -o /app
 
 # Enable globalization and time zones:
