@@ -1,4 +1,6 @@
-namespace Kamino.Endpoint;
+using Microsoft.AspNetCore.Http;
+
+namespace Kamino.Services;
 
 public static class HttpRequestExtensions
 {

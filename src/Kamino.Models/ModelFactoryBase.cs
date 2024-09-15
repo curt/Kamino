@@ -1,5 +1,3 @@
-using System;
-
 namespace Kamino.Models;
 
 public abstract class ModelFactoryBase<TEntity, TModel>(Uri endpoint)

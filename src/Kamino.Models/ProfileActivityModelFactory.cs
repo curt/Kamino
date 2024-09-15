@@ -1,5 +1,3 @@
-using Kamino.Entities;
-
 namespace Kamino.Models;
 
 public class ProfileActivityModelFactory(Uri endpoint) : ModelFactoryBase<Profile, ProfileActivityModel>(endpoint)

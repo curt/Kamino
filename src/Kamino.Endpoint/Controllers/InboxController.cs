@@ -1,18 +1,17 @@
+using Kamino.Models;
 using Kamino.Services;
 using Microsoft.AspNetCore.Mvc;
-using System.Text.Json;
 
 namespace Kamino.Endpoint.Controllers;
 
 [ApiController]
 [Route("inbox")]
-public class InboxController : ControllerBase
+public class InboxController(IInboxService inboxService) : ControllerBase
 {
     [HttpPost]
-    public IActionResult Post([FromBody] JsonElement model)
+    public IActionResult Post([FromBody] ObjectInboxModel model)
     {
-        var service = new InboxService();
-        service.Receive(model);
+        inboxService.Receive(model);
 
         return Accepted();
     }

@@ -1,5 +1,3 @@
-using Kamino.Entities;
-
 namespace Kamino.Models;
 
 public class PostApiModelFactory(Uri endpoint) : ModelFactoryBase<Post, PostApiModel>(endpoint)

@@ -1,5 +1,3 @@
-using Kamino.Entities;
-
 namespace Kamino.Models;
 
 public class UriInternalizer(Uri endpoint)

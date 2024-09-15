@@ -1,4 +1,7 @@
+using FluentValidation.Results;
+using Kamino.Models;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Kamino.Validators.UnitTests;
 
@@ -9,10 +12,7 @@ public class TestInboxActivityValidator
     [DynamicData(nameof(ValidFixtures))]
     public void TestInboxActivityValid(string fixture)
     {
-        var json = File.ReadAllText(fixture);
-        var validator = new InboxActivityValidator();
-        var element = DeserializeJsonElement(json);
-        var valid = validator.Validate(element);
+        var valid = ValidateFixture(fixture);
 
         Assert.IsTrue(valid.IsValid);
     }
@@ -21,12 +21,28 @@ public class TestInboxActivityValidator
     [DynamicData(nameof(InvalidFixtures))]
     public void TestInboxActivityInvalid(string fixture)
     {
-        var json = File.ReadAllText(fixture);
-        var validator = new InboxActivityValidator();
-        var element = DeserializeJsonElement(json);
-        var valid = validator.Validate(element);
+        var valid = ValidateFixture(fixture);
 
         Assert.IsFalse(valid.IsValid);
+    }
+
+    [TestMethod]
+    [DynamicData(nameof(MalformedFixtures))]
+    public void TestInboxActivityMalformed(string fixture)
+    {
+        Assert.ThrowsException<JsonException>
+        (
+            () => { var valid = ValidateFixture(fixture); }
+        );
+    }
+
+    private static ValidationResult ValidateFixture(string fixture)
+    {
+        var json = File.ReadAllText(fixture);
+        var validator = new ObjectInboxModelValidator();
+        var element = JsonSerializer.Deserialize<ObjectInboxModel>(json, DefaultJsonSerializerOptions());
+
+        return validator.Validate(element!);
     }
 
     private static IEnumerable<string[]> ValidFixtures
@@ -39,6 +55,11 @@ public class TestInboxActivityValidator
         get { return GetFixturesForPath("./fixtures/inbox/activity/invalid"); }
     }
 
+    private static IEnumerable<string[]> MalformedFixtures
+    {
+        get { return GetFixturesForPath("./fixtures/inbox/activity/malformed"); }
+    }
+
     private static IEnumerable<string[]> GetFixturesForPath(string path)
     {
         foreach (var fixture in Directory.EnumerateFiles(path, "*.json"))
@@ -47,8 +68,13 @@ public class TestInboxActivityValidator
         }
     }
 
-    private JsonElement DeserializeJsonElement(string json)
+    private static JsonSerializerOptions DefaultJsonSerializerOptions()
     {
-        return JsonDocument.Parse(json).RootElement;
+        return new JsonSerializerOptions
+        {
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = false
+        };
     }
 }

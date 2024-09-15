@@ -1,35 +1,16 @@
-using System.Text.Json;
 using FluentValidation;
+using Kamino.Models;
 
 namespace Kamino.Validators;
 
-public class InboxActivityValidator : AbstractValidator<JsonElement>
+public class ObjectInboxModelValidator : AbstractValidator<ObjectInboxModel>
 {
-    public InboxActivityValidator()
+    public ObjectInboxModelValidator()
     {
         RuleLevelCascadeMode = CascadeMode.Stop;
 
-        RuleFor(a => GetJsonProperty(a, "type"))
-            .NotNull()
-            .Must(a => a?.ValueKind == JsonValueKind.String)
-            .WithName("type");
-
-        RuleFor(a => GetJsonProperty(a, "actor"))
-            .NotNull()
-            .WithName("actor");
-
-        RuleFor(a => GetJsonProperty(a, "object"))
-            .NotNull()
-            .WithName("object");
-    }
-
-    protected JsonElement? GetJsonProperty(JsonElement element, string propertyName)
-    {
-        if (element.TryGetProperty(propertyName, out var result))
-        {
-            return result;
-        }
-
-        return null;
+        RuleFor(a => a.Type).NotNull().NotEmpty();
+        RuleFor(a => a.Actor).NotNull().NotEmpty();
+        RuleFor(a => a.Object).NotNull().NotEmpty();
     }
 }

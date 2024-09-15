@@ -10,10 +10,12 @@ namespace Kamino.Endpoint.Controllers;
 
 [Route("p")]
 [ResponseCache(Duration = 30, Location = ResponseCacheLocation.Any, NoStore = false)]
-public class PostsController(IDbContextFactory<NpgsqlContext> contextFactory) : ContextualController
+public class PostsController(ILogger<PostsController> logger, IDbContextFactory<NpgsqlContext> contextFactory) : ContextualController
 {
     public async Task<IActionResult> Index()
     {
+        logger.LogDebug("Current endpoint: '{url}'", Request.GetEndpoint().ToString());
+
         return await Contextualize(() => IndexHtml(), () => IndexJson());
     }
 
@@ -21,6 +23,8 @@ public class PostsController(IDbContextFactory<NpgsqlContext> contextFactory) : 
     public async Task<IActionResult> Get(string id)
     {
         var guid = Uuid7.FromId22String(id).ToGuid();
+
+        logger.LogDebug("Current endpoint: '{url}'", Request.GetEndpoint().ToString());
 
         return await Contextualize(() => GetHtml(guid), () => GetJson(guid));
     }

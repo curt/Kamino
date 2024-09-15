@@ -3,6 +3,7 @@ using Fluid;
 using Fluid.MvcViewEngine;
 using Kamino.Endpoint;
 using Kamino.Repo.Npgsql;
+using Kamino.Services;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.EntityFrameworkCore;
@@ -39,6 +40,9 @@ builder.Services.AddAuthentication(BasicDefaults.AuthenticationScheme).AddBasic<
 );
 
 // Add services to the container.
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddTransient<IInboxService, InboxService>();
+
 builder.Services.Configure<FluidMvcViewOptions>
 (
     options =>
