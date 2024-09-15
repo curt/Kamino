@@ -3,6 +3,7 @@ using Fluid;
 using Fluid.MvcViewEngine;
 using Kamino.Endpoint;
 using Kamino.Repo.Npgsql;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
@@ -46,6 +47,14 @@ builder.Services.Configure<FluidMvcViewOptions>
     }
 );
 
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    // This seems to contradict Microsoft's documentation at
+    // https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/proxy-load-balancer?view=aspnetcore-8.0
+    // but it seems to work. See commentary: https://stackoverflow.com/a/53215249
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
+});
+
 builder.Services.AddControllersWithViews
 (
     options =>
@@ -72,6 +81,8 @@ builder.Services.AddControllersWithViews
 .AddFluid();
 
 var app = builder.Build();
+
+app.UseForwardedHeaders();
 
 // Migrate the database.
 using (var scope = app.Services.CreateScope())
