@@ -44,7 +44,7 @@ public class ListObjectIndexModelJsonConverter : JsonConverter<IListObjectInboxM
 
         if (read != null)
         {
-            list.Add(new() { Id = read });
+            list.Add(new() { Id = new Uri(read) });
         }
     }
 

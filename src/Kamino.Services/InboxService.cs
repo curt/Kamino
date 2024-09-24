@@ -7,7 +7,7 @@ using System.Text.Json;
 
 namespace Kamino.Services;
 
-public class InboxService(ILogger<InboxService> logger, IHttpContextAccessor accessor) : IInboxService
+public class InboxService(ILogger<InboxService> logger, IHttpContextAccessor accessor, IHttpClientFactory httpClientFactory) : IInboxService
 {
     public void Receive(ObjectInboxModel inboxModel)
     {
@@ -16,6 +16,18 @@ public class InboxService(ILogger<InboxService> logger, IHttpContextAccessor acc
 
         ValidateSignatureModel(signatureModel);
         ValidateActivity(inboxModel);
+
+        // TODO: normalize inbound activity
+
+        var keyProvider = new KeyProvider(httpClientFactory);
+        var key = keyProvider.Get(signatureModel.KeyId);
+
+        if (key == null)
+        {
+            return; // TODO: handle rejection
+        }
+
+        // TODO: reject if actor does not match key owner
     }
 
     private Dictionary<string, string> ParseHeaders()
@@ -46,7 +58,7 @@ public class InboxService(ILogger<InboxService> logger, IHttpContextAccessor acc
     {
         if (!headers.TryGetValue("signature", out var signature))
         {
-            logger.LogWarning("Signature header not found among request headers.");
+            logger.LogWarning("'Signature' header not found among request headers.");
             throw new BadRequestException();
         }
 
@@ -55,15 +67,15 @@ public class InboxService(ILogger<InboxService> logger, IHttpContextAccessor acc
 
     private SignatureModel GetSignatureModel(string signature)
     {
-        try
+        var result = SignatureParser.Parse(signature, out var signatureModel);
+
+        if (result)
         {
-            return SignatureParser.Parse(signature);
+            return signatureModel!;
         }
-        catch (SignatureParserException signatureParserException)
-        {
-            logger.LogWarning(signatureParserException, "Signature header failed parsing.");
-            throw new BadRequestException();
-        }
+
+        logger.LogWarning("Failed to retrieve signature model: {errors}", string.Join(" ", result.Errors));
+        throw new BadRequestException();
     }
 
     private void ValidateSignatureModel(SignatureModel signatureModel)
@@ -92,38 +104,38 @@ public class InboxService(ILogger<InboxService> logger, IHttpContextAccessor acc
         }
     }
 
-    private static ObjectInboxModel NormalizeActivity(JsonElement activity)
-    {
-        var model = new ObjectInboxModel()
-        {
-            Id = activity.GetStringProperty("id"),
-            Type = activity.GetStringProperty("type"),
-            Actor = NormalizeDisjointObject(activity, "actor")
-        };
+    // private static ObjectInboxModel NormalizeActivity(JsonElement activity)
+    // {
+    //     var model = new ObjectInboxModel()
+    //     {
+    //         Id = activity.GetStringProperty("id"),
+    //         Type = activity.GetStringProperty("type"),
+    //         Actor = NormalizeDisjointObject(activity, "actor")
+    //     };
 
-        return model;
-    }
+    //     return model;
+    // }
 
-    private static ObjectInboxModel? NormalizeDisjointObject(JsonElement element, string propertyName)
-    {
-        if (element.TryGetProperty(propertyName, out var innerElement))
-        {
-            var obj = new ObjectInboxModel();
+    // private static ObjectInboxModel? NormalizeDisjointObject(JsonElement element, string propertyName)
+    // {
+    //     if (element.TryGetProperty(propertyName, out var innerElement))
+    //     {
+    //         var obj = new ObjectInboxModel();
 
-            if (innerElement.ValueKind == JsonValueKind.String)
-            {
-                obj.Id = innerElement.GetString();
-            }
+    //         if (innerElement.ValueKind == JsonValueKind.String)
+    //         {
+    //             obj.Id = innerElement.GetString();
+    //         }
 
-            if (innerElement.ValueKind == JsonValueKind.Object)
-            {
-                obj.Id = innerElement.GetStringProperty("id") ?? innerElement.GetStringProperty("href");
-                obj.Type = innerElement.GetStringProperty("type");
-            }
+    //         if (innerElement.ValueKind == JsonValueKind.Object)
+    //         {
+    //             obj.Id = innerElement.GetStringProperty("id") ?? innerElement.GetStringProperty("href");
+    //             obj.Type = innerElement.GetStringProperty("type");
+    //         }
 
-            return obj;
-        }
+    //         return obj;
+    //     }
 
-        return null;
-    }
+    //     return null;
+    // }
 }

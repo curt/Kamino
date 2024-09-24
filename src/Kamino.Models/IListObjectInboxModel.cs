@@ -1,4 +1,4 @@
 namespace Kamino.Models;
 
 [JsonConverter(typeof(ListObjectIndexModelJsonConverter))]
-public interface IListObjectInboxModel { }
+public interface IListObjectInboxModel : IEnumerable<ObjectInboxModel> { }

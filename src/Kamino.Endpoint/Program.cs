@@ -4,12 +4,22 @@ using Fluid.MvcViewEngine;
 using Kamino.Endpoint;
 using Kamino.Repo.Npgsql;
 using Kamino.Services;
+using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddHttpLogging(logging =>
+{
+    logging.LoggingFields = HttpLoggingFields.All;
+    logging.RequestHeaders.Add("Signature");
+    logging.RequestBodyLogLimit = 2048;
+    logging.ResponseBodyLogLimit = 128;
+    logging.CombineLogs = true;
+});
 
 var config = builder.Configuration;
 
@@ -41,6 +51,7 @@ builder.Services.AddAuthentication(BasicDefaults.AuthenticationScheme).AddBasic<
 
 // Add services to the container.
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddHttpClient();
 builder.Services.AddTransient<IInboxService, InboxService>();
 
 builder.Services.Configure<FluidMvcViewOptions>
@@ -106,6 +117,8 @@ if (!app.Environment.IsDevelopment())
 app.UseStatusCodePagesWithReExecute("/Error/{0}");
 
 app.UseStaticFiles();
+
+app.UseHttpLogging();
 
 app.UseRouting();
 

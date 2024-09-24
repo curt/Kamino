@@ -8,7 +8,7 @@ public class ObjectInboxModelJsonConverter : JsonConverter<IObjectInboxModel>
         {
             return new ObjectInboxModel()
             {
-                Id = reader.GetString()
+                Id = new Uri(reader.GetString()!)
             };
         }
         else if (reader.TokenType == JsonTokenType.StartObject)
