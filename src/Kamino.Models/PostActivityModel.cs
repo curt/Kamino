@@ -15,5 +15,5 @@ public class PostActivityModel : ActivityModelBase
     public DateTime? Published { get; set; }
     public DateTime? Updated { get; set; }
     public IEnumerable<string> To { get; set; } = [];
-    public IEnumerable<string> Cc { get; set; } = [];
+    public IEnumerable<string>? Cc { get; set; }
 }

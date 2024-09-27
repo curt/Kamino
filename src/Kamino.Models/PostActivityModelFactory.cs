@@ -11,6 +11,7 @@ public class PostActivityModelFactory(Uri endpoint)
             Url = UriInternalizer.Externalize(post.Url),
             Type = post.PostType.ToString(),
             Context = UriInternalizer.Externalize(post.ContextUri),
+            Conversation = UriInternalizer.Externalize(post.ContextUri),
             InReplyTo = UriInternalizer.Externalize(post.InReplyToUri),
             Name = post.Title,
             Summary = post.Summary,
