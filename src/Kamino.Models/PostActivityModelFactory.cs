@@ -19,6 +19,7 @@ public class PostActivityModelFactory(Uri endpoint)
             Published = post.PublishedAt,
             Updated = post.EditedAt,
             To = ["https://www.w3.org/ns/activitystreams#Public"],
+            Cc = [UriInternalizer.Externalize(Constants.LocalProfileUri + "followers")!],
             AttributedTo = UriInternalizer.Externalize(post.Author?.Uri),
         };
     }
