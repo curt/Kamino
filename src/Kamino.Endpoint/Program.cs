@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using AspNetCore.Authentication.Basic;
 using Fluid;
 using Fluid.MvcViewEngine;
@@ -8,7 +9,6 @@ using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.EntityFrameworkCore;
-using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,44 +23,41 @@ builder.Services.AddHttpLogging(logging =>
 
 var config = builder.Configuration;
 
-builder.Services.AddDbContextFactory<NpgsqlContext, NpgsqlContextFactory>
-(
-    optionsBuilder =>
-    {
-        // See https://stackoverflow.com/a/76697983.
-        var pgsqlPassword = config["POSTGRES_PASSWORD"];
-        var connectionString = $"Host=pgsqldb;Database=kamino;Username=kamino;Password={pgsqlPassword}";
-        var dataSource = DbContextOptionsBuilderHelpers.CreateNpgsqlDataSourceBuilder(connectionString).Build();
+builder.Services.AddDbContextFactory<NpgsqlContext, NpgsqlContextFactory>(optionsBuilder =>
+{
+    // See https://stackoverflow.com/a/76697983.
+    var pgsqlPassword = config["POSTGRES_PASSWORD"];
+    var connectionString = $"Host=pgsqldb;Database=kamino;Username=kamino;Password={pgsqlPassword}";
+    var dataSource = DbContextOptionsBuilderHelpers
+        .CreateNpgsqlDataSourceBuilder(connectionString)
+        .Build();
 
-        optionsBuilder.UseNpgsql
-        (
-            dataSource,
-            npgsqlOptionsBuilder =>
-            {
-                npgsqlOptionsBuilder.UseNetTopologySuite();
-                npgsqlOptionsBuilder.MigrationsAssembly("Kamino.Repo.Npgsql");
-                npgsqlOptionsBuilder.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
-            }
-        );
-    }
-);
-builder.Services.AddAuthentication(BasicDefaults.AuthenticationScheme).AddBasic<BasicUserValidationService>
-(
-    options => { options.Realm = "Kamino"; }
-);
+    optionsBuilder.UseNpgsql(
+        dataSource,
+        npgsqlOptionsBuilder =>
+        {
+            npgsqlOptionsBuilder.UseNetTopologySuite();
+            npgsqlOptionsBuilder.MigrationsAssembly("Kamino.Repo.Npgsql");
+            npgsqlOptionsBuilder.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
+        }
+    );
+});
+builder
+    .Services.AddAuthentication(BasicDefaults.AuthenticationScheme)
+    .AddBasic<BasicUserValidationService>(options =>
+    {
+        options.Realm = "Kamino";
+    });
 
 // Add services to the container.
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient();
 builder.Services.AddTransient<IInboxService, InboxService>();
 
-builder.Services.Configure<FluidMvcViewOptions>
-(
-    options =>
-    {
-        options.TemplateOptions.MemberAccessStrategy = new UnsafeMemberAccessStrategy();
-    }
-);
+builder.Services.Configure<FluidMvcViewOptions>(options =>
+{
+    options.TemplateOptions.MemberAccessStrategy = new UnsafeMemberAccessStrategy();
+});
 
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
@@ -70,30 +67,26 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
     options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
 });
 
-builder.Services.AddControllersWithViews
-(
-    options =>
+builder
+    .Services.AddControllersWithViews(options =>
     {
         options.Filters.Add<ServiceExceptionFilter>();
 
         // See https://stackoverflow.com/a/59813295.
-        var jsonInputFormatter = options.InputFormatters
-            .OfType<SystemTextJsonInputFormatter>()
+        var jsonInputFormatter = options
+            .InputFormatters.OfType<SystemTextJsonInputFormatter>()
             .Single();
 
         jsonInputFormatter.SupportedMediaTypes.Add("application/ld+json");
         jsonInputFormatter.SupportedMediaTypes.Add("application/activity+json");
-    }
-)
-.AddJsonOptions
-(
-    options =>
+    })
+    .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
-        options.JsonSerializerOptions.TypeInfoResolver = new AlphabeticalOrderJsonTypeInfoResolver();
-    }
-)
-.AddFluid();
+        options.JsonSerializerOptions.TypeInfoResolver =
+            new AlphabeticalOrderJsonTypeInfoResolver();
+    })
+    .AddFluid();
 
 var app = builder.Build();
 
@@ -124,8 +117,6 @@ app.UseRouting();
 
 app.UseAuthorization();
 
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+app.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();

@@ -6,6 +6,7 @@ public class ProfileActivityModel : ActivityModelBase
     public string? Type { get; set; }
     public string? Url { get; set; }
     public string? Inbox { get; set; }
+    public string? Outbox { get; set; }
     public string? Followers { get; set; }
     public string? Following { get; set; }
     public string? Icon { get; set; }
