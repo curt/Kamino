@@ -1,6 +1,7 @@
 namespace Kamino.Models;
 
-public class PostActivityModelFactory(Uri endpoint) : ModelFactoryBase<Post, PostActivityModel>(endpoint)
+public class PostActivityModelFactory(Uri endpoint)
+    : ModelFactoryBase<Post, PostActivityModel>(endpoint)
 {
     public override PostActivityModel Create(Post post)
     {
@@ -16,8 +17,8 @@ public class PostActivityModelFactory(Uri endpoint) : ModelFactoryBase<Post, Pos
             Content = post.Source,
             Published = post.PublishedAt,
             Updated = post.EditedAt,
-
-            AttributedTo = UriInternalizer.Externalize(post.Author?.Uri)
+            To = ["https://www.w3.org/ns/activitystreams#Public"],
+            AttributedTo = UriInternalizer.Externalize(post.Author?.Uri),
         };
     }
 
@@ -34,7 +35,7 @@ public class PostActivityModelFactory(Uri endpoint) : ModelFactoryBase<Post, Pos
             Summary = model.Summary,
             Source = model.Content,
             PublishedAt = model.Published,
-            EditedAt = model.Updated
+            EditedAt = model.Updated,
         };
     }
 }
