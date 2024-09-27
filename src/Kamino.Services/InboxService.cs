@@ -1,57 +1,158 @@
-using Kamino.Models;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using FluentValidation.Results;
+using Kamino.Entities;
+using Kamino.Repo.Npgsql;
 using Kamino.Validators;
+using Medo;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using SevenKilo.HttpSignatures;
-using System.Text.Json;
 
 namespace Kamino.Services;
 
-public class InboxService(ILogger<InboxService> logger, IHttpContextAccessor accessor, IHttpClientFactory httpClientFactory) : IInboxService
+public class InboxService(
+    IDbContextFactory<NpgsqlContext> contextFactory,
+    IConfiguration configuration,
+    ILogger<InboxService> logger,
+    IHttpContextAccessor accessor,
+    IHttpClientFactory httpClientFactory
+) : IInboxService
 {
-    public void Receive(ObjectInboxModel inboxModel)
+    public async Task ReceiveAsync(JsonObject activity)
     {
+        ValidateInboundActivity(activity);
+        PrenormalizeInboundActivity(activity);
+        var activityActorUri = new Uri(activity["actor"]!.ToString());
+
+        // TODO: Check actor blocklist.
+
         var signature = GetSignatureHeader(ParseHeaders());
         var signatureModel = GetSignatureModel(signature);
-
         ValidateSignatureModel(signatureModel);
-        ValidateActivity(inboxModel);
 
-        // TODO: normalize inbound activity
+        var keyProvider = new KeyProvider(logger, httpClientFactory);
+        var keyId = signatureModel.KeyId;
 
-        var keyProvider = new KeyProvider(httpClientFactory);
-        var key = keyProvider.Get(signatureModel.KeyId);
-
-        if (key == null)
+        if (configuration.GetValue("HttpSignatures:Required", true))
         {
-            return; // TODO: handle rejection
+            var verifier = new Signature(keyProvider);
+            var request = new InboundVerificationRequest(accessor);
+            var result = await verifier.VerifyAsync(request);
+
+            if (result.Errors.Any())
+            {
+                logger.LogWarning("Activity failed signature verification.");
+                throw new BadRequestException();
+            }
+        }
+        else
+        {
+            var _ =
+                await keyProvider.GetKeyModelByKeyIdAsync(keyId) ?? throw new BadRequestException();
         }
 
-        // TODO: reject if actor does not match key owner
+        var actor = keyProvider.Actor!;
+        var actorUri = new Uri(actor["id"]!.ToString());
+        var keyOwnerUri = keyProvider.Owner!;
+
+        if (!(keyOwnerUri == actorUri && actorUri == activityActorUri))
+        {
+            logger.LogWarning(
+                "Mismatch between activity actor and actor identifier for '{keyId}'.",
+                keyId
+            );
+            throw new BadRequestException();
+        }
+
+        switch (activity["type"]!.ToString())
+        {
+            case "Create":
+                await CreateAsync(activity, actor);
+                break;
+            case "Like":
+                await LikeAsync(activity, actor);
+                break;
+            case "Ping":
+                await PingAsync(activity, actor);
+                break;
+            case "Pong":
+                await PongAsync(activity, actor);
+                break;
+        }
+    }
+
+    internal async Task CreateAsync(JsonObject activity, JsonObject actor)
+    {
+        await Task.Run(() => { });
+    }
+
+    internal async Task LikeAsync(JsonObject activity, JsonObject actor)
+    {
+        var activityUri = NormalizeIdentifier(activity, "id", "activity");
+        var actorUri = NormalizeIdentifier(activity, "actor");
+        var objectUri = NormalizeIdentifier(activity, "object");
+
+        using var context = contextFactory.CreateDbContext();
+
+        try
+        {
+            var match = await context
+                .Likes.Where(e => e.ActorUri == actorUri && e.ObjectUri == objectUri)
+                .FirstOrDefaultAsync();
+
+            if (match == null)
+            {
+                var like = new Like
+                {
+                    ActivityUri = activityUri,
+                    ActorUri = actorUri,
+                    ObjectUri = objectUri,
+                };
+
+                context.Add(like);
+                await context.SaveChangesAsync();
+            }
+            else
+            {
+                logger.LogInformation(
+                    "Like already in repository for actor '{actorUri}' and object '{objectUri}'.",
+                    actorUri,
+                    objectUri
+                );
+            }
+        }
+        catch (DbUpdateException dbUpdateException)
+        {
+            logger.LogWarning(
+                dbUpdateException,
+                "Exception thrown when saving like to repository."
+            );
+        }
+    }
+
+    internal async Task PingAsync(JsonObject activity, JsonObject actor)
+    {
+        await Task.Run(() => { });
+    }
+
+    internal async Task PongAsync(JsonObject activity, JsonObject actor)
+    {
+        await Task.Run(() => { });
     }
 
     private Dictionary<string, string> ParseHeaders()
     {
-        return accessor.HttpContext?.Request.Headers
-            .SelectMany
-            (
-                h => h.Value.Select
-                (
-                    v => new KeyValuePair<string, string>
-                    (
+        return accessor
+                .HttpContext?.Request.Headers.SelectMany(h =>
+                    h.Value.Select(v => new KeyValuePair<string, string>(
                         h.Key.ToLowerInvariant(),
                         v ?? string.Empty
-                    )
+                    ))
                 )
-            ).ToDictionary() ?? [];
-
-    }
-
-    private byte[] ParseBody()
-    {
-        var body = new MemoryStream();
-        accessor.HttpContext?.Request.BodyReader.AsStream().CopyTo(body);
-        return body.ToArray();
+                .ToDictionary() ?? [];
     }
 
     private string GetSignatureHeader(IDictionary<string, string> headers)
@@ -74,7 +175,11 @@ public class InboxService(ILogger<InboxService> logger, IHttpContextAccessor acc
             return signatureModel!;
         }
 
-        logger.LogWarning("Failed to retrieve signature model: {errors}", string.Join(" ", result.Errors));
+        logger.LogWarning(
+            "Failed to retrieve signature model: {errors}.",
+            string.Join(" ", result.Errors)
+        );
+
         throw new BadRequestException();
     }
 
@@ -82,60 +187,68 @@ public class InboxService(ILogger<InboxService> logger, IHttpContextAccessor acc
     {
         var validator = new SignatureModelValidator();
         var result = validator.Validate(signatureModel);
-
-        if (!result.IsValid)
-        {
-            var errors = string.Join(" ", result.Errors.Select(e => e.ErrorMessage));
-            logger.LogWarning("Signature header failed validation: {errors}", errors);
-            throw new BadRequestException();
-        }
+        ValidateResult(result, "Signature header failed validation: {errors}.");
     }
 
-    private void ValidateActivity(ObjectInboxModel activity)
+    private void ValidateInboundActivity(JsonObject inboundActivity)
     {
-        var validator = new ObjectInboxModelValidator();
-        var result = validator.Validate(activity);
+        var validator = new InboundActivityValidator();
+        var result = validator.Validate(inboundActivity);
+        ValidateResult(result, "Inbound activity failed validation: {errors}.");
+    }
 
+    private void ValidateResult(ValidationResult result, string message)
+    {
         if (!result.IsValid)
         {
             var errors = string.Join(" ", result.Errors.Select(e => e.ErrorMessage));
-            logger.LogWarning("Activity not in valid format: {errors}", errors);
+            logger.LogWarning(message, errors);
             throw new BadRequestException();
         }
     }
 
-    // private static ObjectInboxModel NormalizeActivity(JsonElement activity)
-    // {
-    //     var model = new ObjectInboxModel()
-    //     {
-    //         Id = activity.GetStringProperty("id"),
-    //         Type = activity.GetStringProperty("type"),
-    //         Actor = NormalizeDisjointObject(activity, "actor")
-    //     };
+    private void PrenormalizeInboundActivity(JsonObject inboundActivity)
+    {
+        var actor = inboundActivity["actor"]!;
 
-    //     return model;
-    // }
+        if (actor.GetValueKind() != JsonValueKind.String)
+        {
+            var id = actor["id"] ?? actor["href"];
 
-    // private static ObjectInboxModel? NormalizeDisjointObject(JsonElement element, string propertyName)
-    // {
-    //     if (element.TryGetProperty(propertyName, out var innerElement))
-    //     {
-    //         var obj = new ObjectInboxModel();
+            if (id != null && id.GetValueKind() == JsonValueKind.String)
+            {
+                inboundActivity["actor"] = id;
+            }
+            else
+            {
+                logger.LogWarning("Inbound activity lacks normalizable actor identifier.");
+                throw new BadRequestException();
+            }
+        }
+    }
 
-    //         if (innerElement.ValueKind == JsonValueKind.String)
-    //         {
-    //             obj.Id = innerElement.GetString();
-    //         }
+    private static Uri? NormalizeIdentifier(JsonObject obj, string property, string? path = null)
+    {
+        var node = obj[property];
+        if (node != null)
+        {
+            if (node.GetValueKind() == JsonValueKind.Object)
+            {
+                obj[property] = node["id"]?.ToString() ?? node["href"]?.ToString();
+            }
+        }
+        if (path != null)
+        {
+            obj[property] ??= GenerateLocalIdentifier(path).ToString();
+        }
 
-    //         if (innerElement.ValueKind == JsonValueKind.Object)
-    //         {
-    //             obj.Id = innerElement.GetStringProperty("id") ?? innerElement.GetStringProperty("href");
-    //             obj.Type = innerElement.GetStringProperty("type");
-    //         }
+        return obj[property] != null ? new Uri(obj[property]!.ToString()) : null;
+    }
 
-    //         return obj;
-    //     }
+    private static Uri GenerateLocalIdentifier(string path)
+    {
+        path = path.Trim('/');
 
-    //     return null;
-    // }
+        return new Uri($"{Constants.LocalProfileUri}{path}/{Uuid7.NewUuid7().ToId22String()}");
+    }
 }

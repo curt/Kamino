@@ -27,18 +27,30 @@ public class UriInternalizer(Uri endpoint)
     {
         if (uriString != null)
         {
-            var uri = new UriBuilder(uriString);
+            var uri = new Uri(uriString);
 
-            if (uri.Scheme == endpoint.Scheme && uri.Host == endpoint.Host && uri.Port == endpoint.Port)
-            {
-                uri.Scheme = Constants.InternalScheme;
-                uri.Host = Constants.InternalHost;
-                uri.Port = Constants.InternalPort;
-            }
-
-            return uri.Uri.ToString();
+            return Internalize(uri)?.ToString();
         }
 
         return uriString;
+    }
+
+    public Uri? Internalize(Uri? uri)
+    {
+        if (uri != null)
+        {
+            var builder = new UriBuilder(uri);
+
+            if (builder.Scheme == endpoint.Scheme && builder.Host == endpoint.Host && builder.Port == endpoint.Port)
+            {
+                builder.Scheme = Constants.InternalScheme;
+                builder.Host = Constants.InternalHost;
+                builder.Port = Constants.InternalPort;
+            }
+
+            uri = builder.Uri;
+        }
+
+        return uri;
     }
 }

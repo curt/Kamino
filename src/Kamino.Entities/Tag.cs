@@ -1,5 +1,3 @@
-using System;
-
 namespace Kamino.Entities;
 
 public class Tag : IdentifiableEntity

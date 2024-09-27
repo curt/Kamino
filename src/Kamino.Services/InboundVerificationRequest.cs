@@ -3,7 +3,7 @@ using SevenKilo.HttpSignatures;
 
 namespace Kamino.Services;
 
-public class InboxVerificationRequest(IHttpContextAccessor accessor) : IVerificationRequest
+public class InboundVerificationRequest(IHttpContextAccessor accessor) : IVerificationRequest
 {
     private HttpRequest? Request => accessor.HttpContext?.Request;
 
