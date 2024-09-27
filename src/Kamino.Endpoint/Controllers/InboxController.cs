@@ -1,4 +1,4 @@
-using Kamino.Models;
+using System.Text.Json.Nodes;
 using Kamino.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,9 +9,9 @@ namespace Kamino.Endpoint.Controllers;
 public class InboxController(IInboxService inboxService) : ControllerBase
 {
     [HttpPost]
-    public IActionResult Post([FromBody] ObjectInboxModel model)
+    public async Task<IActionResult> Post([FromBody] JsonObject model)
     {
-        inboxService.Receive(model);
+        await inboxService.ReceiveAsync(model);
 
         return Accepted();
     }
