@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using FluentValidation.Results;
 using Kamino.Entities;
+using Kamino.Models;
 using Kamino.Repo.Npgsql;
 using Kamino.Validators;
 using Medo;
@@ -97,45 +98,70 @@ public class InboxService(
 
         using var context = contextFactory.CreateDbContext();
 
-        try
+        var match = await context
+            .Likes.Where(e => e.ActorUri == actorUri && e.ObjectUri == objectUri)
+            .AnyAsync();
+
+        if (!match)
         {
-            var match = await context
-                .Likes.Where(e => e.ActorUri == actorUri && e.ObjectUri == objectUri)
-                .FirstOrDefaultAsync();
-
-            if (match == null)
+            var like = new Like
             {
-                var like = new Like
-                {
-                    ActivityUri = activityUri,
-                    ActorUri = actorUri,
-                    ObjectUri = objectUri,
-                };
+                ActivityUri = activityUri,
+                ActorUri = actorUri,
+                ObjectUri = objectUri,
+            };
 
-                context.Add(like);
-                await context.SaveChangesAsync();
-            }
-            else
-            {
-                logger.LogInformation(
-                    "Like already in repository for actor '{actorUri}' and object '{objectUri}'.",
-                    actorUri,
-                    objectUri
-                );
-            }
+            context.Add(like);
+            await context.SaveChangesAsync();
         }
-        catch (DbUpdateException dbUpdateException)
+        else
         {
-            logger.LogWarning(
-                dbUpdateException,
-                "Exception thrown when saving like to repository."
+            logger.LogInformation(
+                "Like already found in repository for actor '{actorUri}' and object '{objectUri}'.",
+                actorUri,
+                objectUri
             );
         }
     }
 
     internal async Task PingAsync(JsonObject activity, JsonObject actor)
     {
-        await Task.Run(() => { });
+        var activityUri = NormalizeIdentifier(activity, "id", "ping");
+        var actorUri = NormalizeIdentifier(activity, "actor");
+        var toUri = NormalizeIdentifier(activity, "to");
+        var actorInbox = new Uri(actor["inbox"]!.ToString());
+
+        using var context = contextFactory.CreateDbContext();
+
+        var match = await context.Pings.Where(e => e.ActivityUri == activityUri).AnyAsync();
+
+        if (!match)
+        {
+            var ping = new Ping
+            {
+                ActivityUri = activityUri,
+                ActorUri = actorUri,
+                ToUri = toUri,
+            };
+            var pong = new Pong { ActivityUri = GenerateLocalIdentifier("pong"), Ping = ping };
+            context.Add(pong);
+            await context.SaveChangesAsync();
+            var response = new PongOutboundModel(pong);
+            // TODO: Response pong.
+            var post = new SignedHttpPostService(
+                contextFactory,
+                httpClientFactory,
+                accessor.HttpContext!.Request.GetEndpoint()
+            );
+            await post.PostAsync(actorInbox, response);
+        }
+        else
+        {
+            logger.LogInformation(
+                "Ping already found in repository for activity '{activityUri}'.",
+                activityUri
+            );
+        }
     }
 
     internal async Task PongAsync(JsonObject activity, JsonObject actor)
@@ -245,10 +271,12 @@ public class InboxService(
         return obj[property] != null ? new Uri(obj[property]!.ToString()) : null;
     }
 
-    private static Uri GenerateLocalIdentifier(string path)
+    private static Uri GenerateLocalIdentifier(string context)
     {
-        path = path.Trim('/');
-
-        return new Uri($"{Constants.LocalProfileUri}{path}/{Uuid7.NewUuid7().ToId22String()}");
+        context = context.Trim('/');
+        var authority = Constants.InternalHost;
+        var date = DateTime.UtcNow.Year;
+        var id = Uuid7.NewUuid7().ToId22String();
+        return new Uri($"tag:{authority},{date}:{context}/{id}");
     }
 }
