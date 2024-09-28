@@ -21,7 +21,8 @@ public class OutboundSignatureRequest(
     {
         return key switch
         {
-            "(request-target)" => $"{method.ToString().ToLower()} {target.PathAndQuery}",
+            "(request-target)" => $"{method.Method.ToLower()} {target.PathAndQuery}",
+            "host" => target.Host,
             _ => headers
                 .Where(h => h.Key.Equals(key, StringComparison.OrdinalIgnoreCase))
                 ?.SelectMany(h => h.Value)

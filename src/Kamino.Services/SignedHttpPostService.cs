@@ -3,7 +3,6 @@ using System.Security.Cryptography;
 using System.Text.Json;
 using Kamino.Repo.Npgsql;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using SevenKilo.HttpSignatures;
 
 namespace Kamino.Services;
