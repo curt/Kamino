@@ -16,6 +16,8 @@ public abstract class Context : DbContext
     public DbSet<Place> Places { get; set; }
     public DbSet<Tag> Tags { get; set; }
     public DbSet<Like> Likes { get; set; }
+    public DbSet<Ping> Pings { get; set; }
+    public DbSet<Pong> Pongs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -25,6 +27,8 @@ public abstract class Context : DbContext
         modelBuilder.Entity<Place>().IsBasicEntity();
         modelBuilder.Entity<Tag>().IsIdentifiableEntity();
         modelBuilder.Entity<Like>().IsIdentifiableEntity();
+        modelBuilder.Entity<Ping>().IsIdentifiableEntity();
+        modelBuilder.Entity<Pong>().IsIdentifiableEntity();
 
         // Build required columns
         modelBuilder.Entity<Like>(entityBuilder =>
@@ -33,11 +37,29 @@ public abstract class Context : DbContext
             entityBuilder.Property(p => p.ActorUri).IsRequired();
             entityBuilder.Property(p => p.ObjectUri).IsRequired();
         });
+        modelBuilder.Entity<Ping>(entityBuilder =>
+        {
+            entityBuilder.Property(p => p.ActivityUri).IsRequired();
+            entityBuilder.Property(p => p.ActorUri).IsRequired();
+            entityBuilder.Property(p => p.ToUri).IsRequired();
+        });
+        modelBuilder.Entity<Pong>(entityBuilder =>
+        {
+            entityBuilder.Property(p => p.ActivityUri).IsRequired();
+        });
 
         // Build alternate keys
         modelBuilder.Entity<Like>(entityBuilder =>
         {
             entityBuilder.HasAlternateKey(p => new { p.ActorUri, p.ObjectUri });
+            entityBuilder.HasAlternateKey(p => p.ActivityUri);
+        });
+        modelBuilder.Entity<Ping>(entityBuilder =>
+        {
+            entityBuilder.HasAlternateKey(p => p.ActivityUri);
+        });
+        modelBuilder.Entity<Pong>(entityBuilder =>
+        {
             entityBuilder.HasAlternateKey(p => p.ActivityUri);
         });
 
@@ -52,6 +74,7 @@ public abstract class Context : DbContext
             .HasOne(p => p.Author)
             .WithMany(p => p.PlacesAuthored)
             .IsRequired();
+        modelBuilder.Entity<Pong>().HasOne(p => p.Ping).WithMany(p => p.Pongs).IsRequired();
 
         // Build many-to-many relationships
         modelBuilder

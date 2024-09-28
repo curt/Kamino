@@ -3,7 +3,6 @@ namespace Kamino.Models;
 public class ProfileActivityModel : ActivityModelBase
 {
     public string? Id { get; set; }
-    public string? Type { get; set; }
     public string? Url { get; set; }
     public string? Inbox { get; set; }
     public string? Outbox { get; set; }

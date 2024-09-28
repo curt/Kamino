@@ -7,7 +7,7 @@ public class InboundActivityValidator : AbstractJsonNodeValidator<JsonObject>
 {
     public static readonly IEnumerable<string> ValidTypes = ["Create", "Like", "Ping", "Pong"];
 
-    public static readonly IEnumerable<string> IntransitiveTypes = [];
+    public static readonly IEnumerable<string> IntransitiveTypes = ["Ping"];
 
     public InboundActivityValidator()
     {
