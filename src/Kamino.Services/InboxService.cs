@@ -73,6 +73,9 @@ public class InboxService(
             case "Create":
                 await CreateAsync(activity, actor);
                 break;
+            case "Follow":
+                await FollowAsync(activity, actor);
+                break;
             case "Like":
                 await LikeAsync(activity, actor);
                 break;
@@ -124,6 +127,50 @@ public class InboxService(
         }
     }
 
+    internal async Task FollowAsync(JsonObject activity, JsonObject actor)
+    {
+        var activityUri = NormalizeIdentifier(activity, "id", "activity");
+        var actorUri = NormalizeIdentifier(activity, "actor");
+        var objectUri = NormalizeIdentifier(activity, "object");
+        var acceptUri = GenerateLocalIdentifier("accept/follow");
+        var actorInbox = new Uri(actor["inbox"]!.ToString());
+
+        using var context = contextFactory.CreateDbContext();
+
+        var match = await context
+            .Follows.Where(e => e.ActorUri == actorUri && e.ObjectUri == objectUri)
+            .AnyAsync();
+
+        if (!match)
+        {
+            var follow = new Follow
+            {
+                ActivityUri = activityUri,
+                AcceptUri = acceptUri,
+                ActorUri = actorUri,
+                ObjectUri = objectUri,
+            };
+            context.Add(follow);
+            await context.SaveChangesAsync();
+
+            var response = new FollowAcceptOutboundModel(follow);
+            var http = new SignedHttpPostService(
+                contextFactory,
+                httpClientFactory,
+                accessor.HttpContext!.Request.GetEndpoint()
+            );
+            await http.PostAsync(actorInbox, response);
+        }
+        else
+        {
+            logger.LogInformation(
+                "Follow already found in repository for actor '{actorUri}' and object '{objectUri}'.",
+                actorUri,
+                objectUri
+            );
+        }
+    }
+
     internal async Task PingAsync(JsonObject activity, JsonObject actor)
     {
         var activityUri = NormalizeIdentifier(activity, "id", "ping");
@@ -146,14 +193,14 @@ public class InboxService(
             var pong = new Pong { ActivityUri = GenerateLocalIdentifier("pong"), Ping = ping };
             context.Add(pong);
             await context.SaveChangesAsync();
+
             var response = new PongOutboundModel(pong);
-            // TODO: Response pong.
-            var post = new SignedHttpPostService(
+            var http = new SignedHttpPostService(
                 contextFactory,
                 httpClientFactory,
                 accessor.HttpContext!.Request.GetEndpoint()
             );
-            await post.PostAsync(actorInbox, response);
+            await http.PostAsync(actorInbox, response);
         }
         else
         {

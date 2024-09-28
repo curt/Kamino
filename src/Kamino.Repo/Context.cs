@@ -1,6 +1,5 @@
 using Kamino.Entities;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Kamino.Repo;
 
@@ -15,6 +14,7 @@ public abstract class Context : DbContext
     public DbSet<Post> Posts { get; set; }
     public DbSet<Place> Places { get; set; }
     public DbSet<Tag> Tags { get; set; }
+    public DbSet<Follow> Follows { get; set; }
     public DbSet<Like> Likes { get; set; }
     public DbSet<Ping> Pings { get; set; }
     public DbSet<Pong> Pongs { get; set; }
@@ -26,11 +26,18 @@ public abstract class Context : DbContext
         modelBuilder.Entity<Post>().IsBasicEntity();
         modelBuilder.Entity<Place>().IsBasicEntity();
         modelBuilder.Entity<Tag>().IsIdentifiableEntity();
+        modelBuilder.Entity<Follow>().IsIdentifiableEntity();
         modelBuilder.Entity<Like>().IsIdentifiableEntity();
         modelBuilder.Entity<Ping>().IsIdentifiableEntity();
         modelBuilder.Entity<Pong>().IsIdentifiableEntity();
 
         // Build required columns
+        modelBuilder.Entity<Follow>(entityBuilder =>
+        {
+            entityBuilder.Property(p => p.ActivityUri).IsRequired();
+            entityBuilder.Property(p => p.ActorUri).IsRequired();
+            entityBuilder.Property(p => p.ObjectUri).IsRequired();
+        });
         modelBuilder.Entity<Like>(entityBuilder =>
         {
             entityBuilder.Property(p => p.ActivityUri).IsRequired();
@@ -49,6 +56,11 @@ public abstract class Context : DbContext
         });
 
         // Build alternate keys
+        modelBuilder.Entity<Follow>(entityBuilder =>
+        {
+            entityBuilder.HasAlternateKey(p => new { p.ActorUri, p.ObjectUri });
+            entityBuilder.HasAlternateKey(p => p.ActivityUri);
+        });
         modelBuilder.Entity<Like>(entityBuilder =>
         {
             entityBuilder.HasAlternateKey(p => new { p.ActorUri, p.ObjectUri });
