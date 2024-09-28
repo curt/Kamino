@@ -9,19 +9,20 @@ public class NodeInfoController : Controller
     [HttpGet(".well-known/nodeinfo")]
     public ActionResult Index()
     {
-        var model = new Dictionary<string, object>
-        (
+        var model = new Dictionary<string, object>(
             [
-                new
-                (
-                    "links", new Dictionary<string, object?>
-                    (
+                new(
+                    "links",
+                    new Dictionary<string, object?>(
                         [
                             new("rel", "http://nodeinfo.diaspora.software/ns/schema/2.0"),
-                            new("href", Url.ActionLink( action: "Get", values: new { Version = "2.0" }))
+                            new(
+                                "href",
+                                Url.ActionLink(action: "Get", values: new { Version = "2.0" })
+                            ),
                         ]
                     )
-                )
+                ),
             ]
         );
 
@@ -36,41 +37,26 @@ public class NodeInfoController : Controller
             return NotFound();
         }
 
-        var model = new Dictionary<string, object>
-        (
+        var model = new Dictionary<string, object>(
             [
                 new("version", "2.0"),
                 new("protocols", new List<string>(["activitypub"])),
-                new
-                (
+                new(
                     "software",
-                    new Dictionary<string, string>
-                    (
+                    new Dictionary<string, string>(
                         [
-                            new("name", "Klaxon"),
-                            new("version", ThisAssembly.AssemblyInformationalVersion)
+                            new("name", "Kamino"),
+                            new("version", ThisAssembly.AssemblyInformationalVersion),
                         ]
                     )
                 ),
-                new
-                (
+                new(
                     "services",
                     new Dictionary<string, List<string>>([new("outbound", []), new("inbound", [])])
-                )
+                ),
             ]
         );
 
         return Json(model);
     }
 }
-
-/*
-
-    "protocols": [
-        "activitypub"
-    ],
-    "services": {
-        "outbound": [],
-        "inbound": []
-    },
-*/

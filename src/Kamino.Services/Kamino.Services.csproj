@@ -8,7 +8,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="SevenKilo.HttpSignatures" Version="0.0.1-alpha.9.gc5346980c7" />
+    <PackageReference Include="SevenKilo.HttpSignatures" Version="0.0.1-alpha.10.gfcdac5f609" />
   </ItemGroup>
 
   <ItemGroup>
