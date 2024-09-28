@@ -10,7 +10,6 @@ public class PostActivityModel : ActivityModelBase
     public string? Conversation { get; set; }
     public string? Name { get; set; }
     public string? Summary { get; set; }
-    public string? Type { get; set; }
     public string? Content { get; set; }
     public DateTime? Published { get; set; }
     public DateTime? Updated { get; set; }
