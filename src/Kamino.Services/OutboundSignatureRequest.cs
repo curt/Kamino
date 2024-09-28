@@ -8,7 +8,7 @@ namespace Kamino.Services;
 public class OutboundSignatureRequest(
     Uri target,
     HttpMethod method,
-    HttpContentHeaders headers,
+    HttpRequestHeaders headers,
     Uri endpoint
 ) : ISignatureRequest
 {

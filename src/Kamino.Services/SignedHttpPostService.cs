@@ -29,7 +29,7 @@ public class SignedHttpPostService(
         var signatureRequest = new OutboundSignatureRequest(
             uri,
             HttpMethod.Post,
-            content.Headers,
+            request.Headers,
             endpoint
         );
         var signer = new Signature(GetKeyProvider());
