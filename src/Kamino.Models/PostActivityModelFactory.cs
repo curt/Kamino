@@ -1,6 +1,7 @@
 namespace Kamino.Models;
 
-public class PostActivityModelFactory(Uri endpoint) : ModelFactoryBase<Post, PostActivityModel>(endpoint)
+public class PostActivityModelFactory(Uri endpoint)
+    : ModelFactoryBase<Post, PostActivityModel>(endpoint)
 {
     public override PostActivityModel Create(Post post)
     {
@@ -10,14 +11,16 @@ public class PostActivityModelFactory(Uri endpoint) : ModelFactoryBase<Post, Pos
             Url = UriInternalizer.Externalize(post.Url),
             Type = post.PostType.ToString(),
             Context = UriInternalizer.Externalize(post.ContextUri),
+            Conversation = UriInternalizer.Externalize(post.ContextUri),
             InReplyTo = UriInternalizer.Externalize(post.InReplyToUri),
             Name = post.Title,
             Summary = post.Summary,
             Content = post.Source,
             Published = post.PublishedAt,
             Updated = post.EditedAt,
-
-            AttributedTo = UriInternalizer.Externalize(post.Author?.Uri)
+            To = ["https://www.w3.org/ns/activitystreams#Public"],
+            Cc = [UriInternalizer.Externalize(Constants.LocalProfileUri + "followers")!],
+            AttributedTo = UriInternalizer.Externalize(post.Author?.Uri),
         };
     }
 
@@ -34,7 +37,7 @@ public class PostActivityModelFactory(Uri endpoint) : ModelFactoryBase<Post, Pos
             Summary = model.Summary,
             Source = model.Content,
             PublishedAt = model.Published,
-            EditedAt = model.Updated
+            EditedAt = model.Updated,
         };
     }
 }

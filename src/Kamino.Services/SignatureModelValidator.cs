@@ -14,20 +14,16 @@ public class SignatureModelValidator : AbstractValidator<SignatureModel>
 
         RuleFor(a => a.KeyId).NotEmpty();
 
-        RuleFor(a => a.SignatureHash)
-            .NotEmpty()
-            .Must(CanConvertFromBase64String)
-            .WithMessage("{PropertyName} must be convertible from base-64.");
+        RuleFor(a => a.SignatureHash).NotEmpty();
 
         RuleFor(a => a.Headers)
             .Must(h => h.Contains("digest", StringComparer.OrdinalIgnoreCase))
             .WithMessage("{PropertyName} must contain the 'digest' value.");
 
         RuleFor(a => a.Headers)
-            .Must
-            (
-                h => h.Contains("date", StringComparer.OrdinalIgnoreCase)
-                    || h.Contains("(created)", StringComparer.OrdinalIgnoreCase)
+            .Must(h =>
+                h.Contains("date", StringComparer.OrdinalIgnoreCase)
+                || h.Contains("(created)", StringComparer.OrdinalIgnoreCase)
             )
             .WithMessage("{PropertyName} must contain either the 'date' or '(created)' value.");
     }
