@@ -35,6 +35,7 @@ public class SignedHttpPostService(
         );
         var signer = new Signature(GetKeyProvider());
         var result = await signer.SignAsync(signatureRequest);
+        request.Headers.Add("Signature", signer.SignatureComposed);
         await httpClient.SendAsync(request);
     }
 
