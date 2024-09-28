@@ -25,7 +25,7 @@ public abstract class ContextualController : Controller
 
         if (jsonAcceptHeader != null)
         {
-            Response.ContentType = "application/activity+json";
+            Response.ContentType = "application/activity+json; charset=utf-8";
             return await json();
         }
 
