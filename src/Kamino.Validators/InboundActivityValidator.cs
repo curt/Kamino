@@ -12,34 +12,52 @@ public class InboundActivityValidator : AbstractJsonNodeValidator<JsonObject>
         "Like",
         "Ping",
         "Pong",
+        "Undo",
     ];
 
     public static readonly IEnumerable<string> IntransitiveTypes = ["Ping"];
+
+    public static readonly IEnumerable<string> UndoableTypes = ["Like", "Follow"];
 
     public InboundActivityValidator()
     {
         RuleLevelCascadeMode = CascadeMode.Stop;
 
         RuleFor(obj => obj["type"])
-            .NotNull()
             .Must(BeString)
             .WithMessage("'{PropertyName}' must be a string.")
             .Must(node => ValidTypes.Contains(node!.GetValue<string>()))
             .WithName("type");
 
         RuleFor(obj => obj["actor"])
-            .NotNull()
-            .Must(BeStringOrObject)
+            .Must(BeIdentifiable)
             .WithMessage("'{PropertyName}' must be a string or an object.")
             .WithName("actor");
 
-        RuleFor(obj => obj["object"])
-            .NotNull()
-            .Must(BeStringOrObject)
-            .WithMessage("'{PropertyName}' must be a string or an object.")
-            .WithName("object")
-            .When(obj =>
-                obj["type"] != null && !IntransitiveTypes.Contains(obj["type"]!.ToString())
-            );
+        When(
+            obj => !IntransitiveTypes.Contains(GetString(obj["type"])),
+            () =>
+            {
+                RuleFor(obj => obj["object"])
+                    .Must(BeIdentifiable)
+                    .WithMessage("'{PropertyName}' must be a string or an object.")
+                    .WithName("object");
+            }
+        );
+
+        When(
+            obj => GetString(obj["type"]) == "Undo",
+            () =>
+            {
+                RuleFor(obj => obj["object"])
+                    .NotNull()
+                    .Must(node =>
+                        BeIdentifiable(node)
+                        || (BeObject(node) && UndoableTypes.Contains(GetString(node!["type"])))
+                    )
+                    .WithMessage("'{PropertyName}' must represent an undoable type.")
+                    .WithName("object");
+            }
+        );
     }
 }

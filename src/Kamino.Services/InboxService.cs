@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using FluentValidation.Results;
@@ -8,6 +9,7 @@ using Kamino.Validators;
 using Medo;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using SevenKilo.HttpSignatures;
@@ -77,13 +79,16 @@ public class InboxService(
                 await FollowAsync(activity, actor);
                 break;
             case "Like":
-                await LikeAsync(activity, actor);
+                await LikeAsync(activity, actorUri);
                 break;
             case "Ping":
                 await PingAsync(activity, actor);
                 break;
             case "Pong":
                 await PongAsync(activity, actor);
+                break;
+            case "Undo":
+                await UndoAsync(activity, actorUri);
                 break;
         }
     }
@@ -93,10 +98,9 @@ public class InboxService(
         await Task.Run(() => { });
     }
 
-    internal async Task LikeAsync(JsonObject activity, JsonObject actor)
+    internal async Task LikeAsync(JsonObject activity, Uri actorUri)
     {
         var activityUri = NormalizeIdentifier(activity, "id", "activity");
-        var actorUri = NormalizeIdentifier(activity, "actor");
         var objectUri = NormalizeIdentifier(activity, "object");
 
         using var context = contextFactory.CreateDbContext();
@@ -120,7 +124,7 @@ public class InboxService(
         else
         {
             logger.LogInformation(
-                "Like already found in repository for actor '{actorUri}' and object '{objectUri}'.",
+                "Like already found for actor '{actorUri}' and object '{objectUri}'.",
                 actorUri,
                 objectUri
             );
@@ -151,7 +155,15 @@ public class InboxService(
                 ObjectUri = objectUri,
             };
             context.Add(follow);
-            await context.SaveChangesAsync();
+
+            if (await context.SaveChangesAsync() > 0)
+            {
+                logger.LogInformation(
+                    "Follow added for actor '{actorUri}' and object '{objectUri}'.",
+                    actorUri,
+                    objectUri
+                );
+            }
 
             var response = new FollowAcceptOutboundModel(follow);
             var http = new SignedHttpPostService(
@@ -164,7 +176,7 @@ public class InboxService(
         else
         {
             logger.LogInformation(
-                "Follow already found in repository for actor '{actorUri}' and object '{objectUri}'.",
+                "Follow already found for actor '{actorUri}' and object '{objectUri}'.",
                 actorUri,
                 objectUri
             );
@@ -192,7 +204,11 @@ public class InboxService(
             };
             var pong = new Pong { ActivityUri = GenerateLocalIdentifier("pong"), Ping = ping };
             context.Add(pong);
-            await context.SaveChangesAsync();
+
+            if (await context.SaveChangesAsync() > 0)
+            {
+                logger.LogInformation("Ping added for activity '{activityUri}'.", activityUri);
+            }
 
             var response = new PongOutboundModel(pong);
             var http = new SignedHttpPostService(
@@ -204,16 +220,92 @@ public class InboxService(
         }
         else
         {
-            logger.LogInformation(
-                "Ping already found in repository for activity '{activityUri}'.",
-                activityUri
-            );
+            logger.LogInformation("Ping already found for activity '{activityUri}'.", activityUri);
         }
     }
 
     internal async Task PongAsync(JsonObject activity, JsonObject actor)
     {
         await Task.Run(() => { });
+    }
+
+    internal async Task UndoAsync(JsonObject activity, Uri actorUri)
+    {
+        var undone = false;
+        var actObjectUri = NormalizeIdentifier(activity, "object");
+
+        if (actObjectUri != null)
+        {
+            undone =
+                undone
+                || await UndoLikeAsync(
+                    f => f.ActorUri == actorUri && f.ActivityUri == actObjectUri,
+                    $"activity '{actObjectUri}'"
+                )
+                || await UndoFollowAsync(
+                    f => f.ActorUri == actorUri && f.ActivityUri == actObjectUri,
+                    $"activity '{actObjectUri}'"
+                );
+        }
+
+        var obj = activity["object"]!;
+        if (!undone && obj.GetValueKind() == JsonValueKind.Object)
+        {
+            var objObjectUri = NormalizeIdentifier(obj.AsObject(), "object");
+            var objActorUri = NormalizeIdentifier(obj.AsObject(), "actor");
+
+            if (!undone && actorUri == objActorUri)
+            {
+                switch (obj["type"]!.ToString())
+                {
+                    case "Like":
+                        await UndoLikeAsync(
+                            f => f.ActorUri == objActorUri && f.ObjectUri == objObjectUri,
+                            $"actor '{objActorUri}' and '{objObjectUri}'"
+                        );
+                        break;
+                    case "Follow":
+                        await UndoFollowAsync(
+                            f => f.ActorUri == objActorUri && f.ObjectUri == objObjectUri,
+                            $"actor '{objActorUri}' and '{objObjectUri}'"
+                        );
+                        break;
+                }
+            }
+        }
+    }
+
+    private async Task<bool> UndoLikeAsync(Expression<Func<Like, bool>> predicate, string msg) =>
+        await UndoEntityAsync(c => c.Likes, predicate, msg);
+
+    private async Task<bool> UndoFollowAsync(
+        Expression<Func<Follow, bool>> predicate,
+        string msg
+    ) => await UndoEntityAsync(c => c.Follows, predicate, msg);
+
+    private async Task<bool> UndoEntityAsync<T>(
+        Func<NpgsqlContext, DbSet<T>> dbSet,
+        Expression<Func<T, bool>> predicate,
+        string msg
+    )
+        where T : class
+    {
+        using var context = contextFactory.CreateDbContext();
+
+        var entity = await dbSet.Invoke(context).Where(predicate).FirstOrDefaultAsync();
+
+        if (entity != null)
+        {
+            context.Remove(entity);
+            if (await context.SaveChangesAsync() > 0)
+            {
+                logger.LogInformation("{t} removed for {msg}.", typeof(T).Name, msg);
+
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private Dictionary<string, string> ParseHeaders()
@@ -228,7 +320,7 @@ public class InboxService(
                 .ToDictionary() ?? [];
     }
 
-    private string GetSignatureHeader(IDictionary<string, string> headers)
+    private string GetSignatureHeader(Dictionary<string, string> headers)
     {
         if (!headers.TryGetValue("signature", out var signature))
         {
@@ -252,7 +344,6 @@ public class InboxService(
             "Failed to retrieve signature model: {errors}.",
             string.Join(" ", result.Errors)
         );
-
         throw new BadRequestException();
     }
 
@@ -324,6 +415,7 @@ public class InboxService(
         var authority = Constants.InternalHost;
         var date = DateTime.UtcNow.Year;
         var id = Uuid7.NewUuid7().ToId22String();
+
         return new Uri($"tag:{authority},{date}:{context}/{id}");
     }
 }

@@ -1,5 +1,5 @@
-using FluentValidation;
 using System.Text.Json.Nodes;
+using FluentValidation;
 
 namespace Kamino.Validators;
 
@@ -14,6 +14,12 @@ public class InboundActorValidator : AbstractJsonNodeValidator<JsonObject>
             .Must(BeString)
             .WithMessage("'{PropertyName}' must be a string.")
             .WithName("id");
+
+        RuleFor(obj => obj["inbox"])
+            .NotNull()
+            .Must(BeString)
+            .WithMessage("'{PropertyName}' must be a string.")
+            .WithName("inbox");
 
         RuleFor(obj => obj["publicKey"])
             .NotNull()
