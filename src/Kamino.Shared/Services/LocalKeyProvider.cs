@@ -3,7 +3,7 @@ using Kamino.Repo.Npgsql;
 using Microsoft.EntityFrameworkCore;
 using SevenKilo.HttpSignatures;
 
-namespace Kamino.Services;
+namespace Kamino.Shared.Services;
 
 public class LocalKeyProvider(IDbContextFactory<NpgsqlContext> contextFactory) : IKeyProvider
 {

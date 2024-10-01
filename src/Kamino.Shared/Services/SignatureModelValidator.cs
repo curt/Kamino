@@ -1,7 +1,7 @@
 using FluentValidation;
 using SevenKilo.HttpSignatures;
 
-namespace Kamino.Services;
+namespace Kamino.Shared.Services;
 
 public class SignatureModelValidator : AbstractValidator<SignatureModel>
 {

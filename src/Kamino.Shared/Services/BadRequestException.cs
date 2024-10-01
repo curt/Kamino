@@ -1,4 +1,4 @@
-namespace Kamino.Services;
+namespace Kamino.Shared.Services;
 
 public class BadRequestException(object? value = null) : Exception
 {

@@ -1,5 +1,5 @@
 using System.Text.Json.Nodes;
-using Kamino.Services;
+using Kamino.Shared.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Kamino.Endpoint.Controllers;

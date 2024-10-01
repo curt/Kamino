@@ -1,3 +1,3 @@
-namespace Kamino.Services;
+namespace Kamino.Shared.Services;
 
 public class GoneException : Exception { }

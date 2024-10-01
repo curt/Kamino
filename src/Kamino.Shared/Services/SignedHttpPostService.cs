@@ -5,7 +5,7 @@ using Kamino.Repo.Npgsql;
 using Microsoft.EntityFrameworkCore;
 using SevenKilo.HttpSignatures;
 
-namespace Kamino.Services;
+namespace Kamino.Shared.Services;
 
 public class SignedHttpPostService(
     IDbContextFactory<NpgsqlContext> contextFactory,

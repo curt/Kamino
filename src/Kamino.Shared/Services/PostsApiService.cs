@@ -3,14 +3,14 @@ using Kamino.Models;
 using Kamino.Repo;
 using Microsoft.EntityFrameworkCore;
 
-namespace Kamino.Services;
+namespace Kamino.Shared.Services;
 
 public class PostsApiService(Context context, Uri endpoint)
 {
     public async Task<IEnumerable<PostApiModel>> GetPostsAsync()
     {
-        var posts = await context.Posts
-            .Include(post => post.Author)
+        var posts = await context
+            .Posts.Include(post => post.Author)
             .Include(post => post.Places)
             .Include(post => post.Tags)
             .ToListAsync();
@@ -38,10 +38,10 @@ public class PostsApiService(Context context, Uri endpoint)
 
     private async Task<Profile> SingleProfileAsync(string uri)
     {
-        return await context.Profiles
-            .WhereLocal()
-            .Where(profile => profile.Uri == uri)
-            .SingleOrDefaultAsync() ?? throw new BadRequestException();
+        return await context
+                .Profiles.WhereLocal()
+                .Where(profile => profile.Uri == uri)
+                .SingleOrDefaultAsync() ?? throw new BadRequestException();
     }
 
     private static void AfterAddPost(Post post)
@@ -67,7 +67,7 @@ public class PostsApiService(Context context, Uri endpoint)
     {
         var uri = new UriBuilder(Constants.LocalProfileUri)
         {
-            Path = string.Format(format, guid.ToId22())
+            Path = string.Format(format, guid.ToId22()),
         };
 
         return uri.Uri.ToString();

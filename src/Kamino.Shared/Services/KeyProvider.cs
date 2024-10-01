@@ -4,7 +4,7 @@ using Kamino.Shared.Validators;
 using Microsoft.Extensions.Logging;
 using SevenKilo.HttpSignatures;
 
-namespace Kamino.Services;
+namespace Kamino.Shared.Services;
 
 public class KeyProvider(ILogger logger, IHttpClientFactory httpClientFactory) : IKeyProvider
 {

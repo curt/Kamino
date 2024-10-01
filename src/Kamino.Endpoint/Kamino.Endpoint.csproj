@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <ItemGroup>
-    <ProjectReference Include="..\Kamino.Services\Kamino.Services.csproj" />
+    <ProjectReference Include="..\Kamino.Shared\Kamino.Shared.csproj" />
     <ProjectReference Include="..\Kamino.Repo.Npgsql\Kamino.Repo.Npgsql.csproj" />
   </ItemGroup>
 

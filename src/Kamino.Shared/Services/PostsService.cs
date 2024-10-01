@@ -3,11 +3,13 @@ using Kamino.Models;
 using Kamino.Repo;
 using Microsoft.EntityFrameworkCore;
 
-namespace Kamino.Services;
+namespace Kamino.Shared.Services;
 
 public class PostsService(Context context)
 {
-    public async Task<IEnumerable<TModel>> GetPublicPostsAsync<TModel>(ModelFactoryBase<Post, TModel> factory)
+    public async Task<IEnumerable<TModel>> GetPublicPostsAsync<TModel>(
+        ModelFactoryBase<Post, TModel> factory
+    )
     {
         var now = DateTime.UtcNow;
         var posts = await PublicPostsQueryBase()
@@ -18,12 +20,13 @@ public class PostsService(Context context)
         return posts.Select(factory.Create);
     }
 
-    public async Task<TModel> GetSinglePublicPostByIdAsync<TModel>(Guid id, ModelFactoryBase<Post, TModel> factory)
+    public async Task<TModel> GetSinglePublicPostByIdAsync<TModel>(
+        Guid id,
+        ModelFactoryBase<Post, TModel> factory
+    )
     {
         var now = DateTime.UtcNow;
-        var posts = await PublicPostsQueryBase()
-            .WhereIdMatch(id)
-            .ToListAsync();
+        var posts = await PublicPostsQueryBase().WhereIdMatch(id).ToListAsync();
 
         var post = SinglePublicPost(posts, now);
 
@@ -38,8 +41,8 @@ public class PostsService(Context context)
     private IQueryable<Post> PublicPostsQueryBase()
     {
         var profiles = context.Profiles.WhereLocal();
-        var posts = context.Posts
-            .Join(profiles, post => post.Author, profile => profile, (post, profile) => post)
+        var posts = context
+            .Posts.Join(profiles, post => post.Author, profile => profile, (post, profile) => post)
             .Include(post => post.Author)
             .Include(post => post.Places)
             .Include(post => post.Tags);

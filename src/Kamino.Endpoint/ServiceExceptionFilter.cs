@@ -1,4 +1,4 @@
-using Kamino.Services;
+using Kamino.Shared.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 

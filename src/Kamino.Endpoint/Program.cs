@@ -4,7 +4,7 @@ using Fluid;
 using Fluid.MvcViewEngine;
 using Kamino.Endpoint;
 using Kamino.Repo.Npgsql;
-using Kamino.Services;
+using Kamino.Shared.Services;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc.Formatters;

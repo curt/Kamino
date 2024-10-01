@@ -3,7 +3,7 @@ using Kamino.Entities;
 using Kamino.Models;
 using SevenKilo.HttpSignatures;
 
-namespace Kamino.Services;
+namespace Kamino.Shared.Services;
 
 public class OutboundSignatureRequest(
     Uri target,

@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
-namespace Kamino.Services;
+namespace Kamino.Shared.Services;
 
 public static class HttpRequestExtensions
 {

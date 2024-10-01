@@ -3,25 +3,29 @@ using Kamino.Models;
 using Kamino.Repo;
 using Microsoft.EntityFrameworkCore;
 
-namespace Kamino.Services;
+namespace Kamino.Shared.Services;
 
 public class ProfilesService(Context context)
 {
-    public async Task<TModel> GetPublicProfileAsync<TModel>(ModelFactoryBase<Profile, TModel> factory)
+    public async Task<TModel> GetPublicProfileAsync<TModel>(
+        ModelFactoryBase<Profile, TModel> factory
+    )
     {
         var profile = await PublicProfileAsync();
 
         return factory.Create(profile);
     }
 
-    public async Task<TModel> GetPublicProfileByResourceAsync<TModel>(string resource, ModelFactoryBase<Profile, TModel> factory)
+    public async Task<TModel> GetPublicProfileByResourceAsync<TModel>(
+        string resource,
+        ModelFactoryBase<Profile, TModel> factory
+    )
     {
         var profile = await PublicProfileAsync();
         var name = profile.Name;
         var host = factory.UriInternalizer.ExternalHost;
 
-        if
-        (
+        if (
             !(
                 $"acct:{name}".Equals(resource, StringComparison.OrdinalIgnoreCase)
                 || $"acct:{name}@{host}".Equals(resource, StringComparison.OrdinalIgnoreCase)
@@ -36,9 +40,7 @@ public class ProfilesService(Context context)
 
     private async Task<Profile> PublicProfileAsync()
     {
-        return await context.Profiles
-            .WhereLocal()
-            .SingleOrDefaultAsync()
+        return await context.Profiles.WhereLocal().SingleOrDefaultAsync()
             ?? throw new NotFoundException();
     }
 }

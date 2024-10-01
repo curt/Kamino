@@ -1,6 +1,6 @@
 using System.Text.Json.Nodes;
 
-namespace Kamino.Services;
+namespace Kamino.Shared.Services;
 
 public interface IInboxService
 {

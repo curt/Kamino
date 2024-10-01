@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using SevenKilo.HttpSignatures;
 
-namespace Kamino.Services;
+namespace Kamino.Shared.Services;
 
 public class InboundVerificationRequest(IHttpContextAccessor accessor) : IVerificationRequest
 {
@@ -14,7 +14,10 @@ public class InboundVerificationRequest(IHttpContextAccessor accessor) : IVerifi
         return Request!.Headers[key];
     }
 
-    public Result Preverify(SignatureModel signatureModel, IEnumerable<KeyValuePair<string, string>> headerPairs)
+    public Result Preverify(
+        SignatureModel signatureModel,
+        IEnumerable<KeyValuePair<string, string>> headerPairs
+    )
     {
         return new Result();
     }

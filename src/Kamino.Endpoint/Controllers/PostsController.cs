@@ -1,7 +1,7 @@
 using Kamino.Entities;
 using Kamino.Models;
 using Kamino.Repo.Npgsql;
-using Kamino.Services;
+using Kamino.Shared.Services;
 using Medo;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,7 +10,10 @@ namespace Kamino.Endpoint.Controllers;
 
 [Route("p")]
 [ResponseCache(Duration = 30, Location = ResponseCacheLocation.Any, NoStore = false)]
-public class PostsController(ILogger<PostsController> logger, IDbContextFactory<NpgsqlContext> contextFactory) : ContextualController
+public class PostsController(
+    ILogger<PostsController> logger,
+    IDbContextFactory<NpgsqlContext> contextFactory
+) : ContextualController
 {
     public async Task<IActionResult> Index()
     {
@@ -45,7 +48,9 @@ public class PostsController(ILogger<PostsController> logger, IDbContextFactory<
         return Json(model.Select(m => Contextify(m)));
     }
 
-    private async Task<IEnumerable<TModel>> IndexModel<TModel>(ModelFactoryBase<Post, TModel> factory)
+    private async Task<IEnumerable<TModel>> IndexModel<TModel>(
+        ModelFactoryBase<Post, TModel> factory
+    )
     {
         using var context = contextFactory.CreateDbContext();
 
