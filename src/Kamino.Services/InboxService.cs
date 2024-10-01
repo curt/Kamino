@@ -5,7 +5,7 @@ using FluentValidation.Results;
 using Kamino.Entities;
 using Kamino.Models;
 using Kamino.Repo.Npgsql;
-using Kamino.Validators;
+using Kamino.Shared.Validators;
 using Medo;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;

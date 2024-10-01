@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Kamino.Validators.UnitTests;
+namespace Kamino.Shared.Validators.UnitTests;
 
 public class Helpers
 {
@@ -19,7 +19,7 @@ public class Helpers
         {
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            WriteIndented = false
+            WriteIndented = false,
         };
     }
 }

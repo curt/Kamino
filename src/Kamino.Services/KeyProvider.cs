@@ -1,14 +1,15 @@
-using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Kamino.Shared.Validators;
+using Microsoft.Extensions.Logging;
 using SevenKilo.HttpSignatures;
-using Kamino.Validators;
 
 namespace Kamino.Services;
 
 public class KeyProvider(ILogger logger, IHttpClientFactory httpClientFactory) : IKeyProvider
 {
-    private static readonly JsonSerializerOptions s_jsonSerializerOptions = new(JsonSerializerDefaults.Web);
+    private static readonly JsonSerializerOptions s_jsonSerializerOptions =
+        new(JsonSerializerDefaults.Web);
 
     private Uri? _owner = null;
     private JsonObject? _actor = null;
@@ -45,7 +46,11 @@ public class KeyProvider(ILogger logger, IHttpClientFactory httpClientFactory) :
                 }
                 else
                 {
-                    logger.LogWarning("Inbound actor failed validation for key '{keyId}': {errors}.", keyId, string.Join(' ', result.Errors));
+                    logger.LogWarning(
+                        "Inbound actor failed validation for key '{keyId}': {errors}.",
+                        keyId,
+                        string.Join(' ', result.Errors)
+                    );
                 }
             }
             else
@@ -55,11 +60,19 @@ public class KeyProvider(ILogger logger, IHttpClientFactory httpClientFactory) :
         }
         catch (HttpRequestException httpRequestException)
         {
-            logger.LogWarning(httpRequestException, "Exception while retrieving actor for key '{keyId}'.", keyId);
+            logger.LogWarning(
+                httpRequestException,
+                "Exception while retrieving actor for key '{keyId}'.",
+                keyId
+            );
         }
         catch (JsonException jsonException)
         {
-            logger.LogWarning(jsonException, "Exception while deserializing actor for key '{keyId}'.", keyId);
+            logger.LogWarning(
+                jsonException,
+                "Exception while deserializing actor for key '{keyId}'.",
+                keyId
+            );
         }
 
         return null;

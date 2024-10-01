@@ -2,7 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using FluentValidation;
 
-namespace Kamino.Validators;
+namespace Kamino.Shared.Validators;
 
 public abstract class AbstractJsonNodeValidator<T> : AbstractValidator<T>
     where T : JsonNode?

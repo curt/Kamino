@@ -3,7 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using FluentValidation.Results;
 
-namespace Kamino.Validators.UnitTests;
+namespace Kamino.Shared.Validators.UnitTests;
 
 [TestClass]
 public class TestInboundActivityValidator

@@ -1,7 +1,7 @@
-using FluentValidation;
 using System.Text.Json.Nodes;
+using FluentValidation;
 
-namespace Kamino.Validators;
+namespace Kamino.Shared.Validators;
 
 public class InboundPublicKeyValidator : AbstractJsonNodeValidator<JsonNode?>
 {
