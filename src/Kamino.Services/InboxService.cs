@@ -9,7 +9,6 @@ using Kamino.Validators;
 using Medo;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using SevenKilo.HttpSignatures;
@@ -28,7 +27,7 @@ public class InboxService(
     {
         ValidateInboundActivity(activity);
         PrenormalizeInboundActivity(activity);
-        var activityActorUri = new Uri(activity["actor"]!.ToString());
+        var activityActorUri = activity.GetUri("actor")!;
 
         // TODO: Check actor blocklist.
 
@@ -58,10 +57,10 @@ public class InboxService(
         }
 
         var actor = keyProvider.Actor!;
-        var actorUri = new Uri(actor["id"]!.ToString());
+        var actorUri = actor.GetUri("id")!;
         var keyOwnerUri = keyProvider.Owner!;
 
-        if (!(keyOwnerUri == actorUri && actorUri == activityActorUri))
+        if (!(actorUri == keyOwnerUri && actorUri == activityActorUri))
         {
             logger.LogWarning(
                 "Mismatch between activity actor and actor identifier for '{keyId}'.",
@@ -70,7 +69,7 @@ public class InboxService(
             throw new BadRequestException();
         }
 
-        switch (activity["type"]!.ToString())
+        switch (activity.GetString("type"))
         {
             case "Create":
                 await CreateAsync(activity, actor);
@@ -100,7 +99,7 @@ public class InboxService(
 
     internal async Task LikeAsync(JsonObject activity, Uri actorUri)
     {
-        var activityUri = NormalizeIdentifier(activity, "id", "activity");
+        var activityUri = NormalizeIdentifier(activity, "id", "like");
         var objectUri = NormalizeIdentifier(activity, "object");
 
         using var context = contextFactory.CreateDbContext();
@@ -133,11 +132,11 @@ public class InboxService(
 
     internal async Task FollowAsync(JsonObject activity, JsonObject actor)
     {
-        var activityUri = NormalizeIdentifier(activity, "id", "activity");
+        var activityUri = NormalizeIdentifier(activity, "id", "follow");
         var actorUri = NormalizeIdentifier(activity, "actor");
         var objectUri = NormalizeIdentifier(activity, "object");
         var acceptUri = GenerateLocalIdentifier("accept/follow");
-        var actorInbox = new Uri(actor["inbox"]!.ToString());
+        var actorInbox = actor.GetUri("inbox")!;
 
         using var context = contextFactory.CreateDbContext();
 
@@ -188,7 +187,7 @@ public class InboxService(
         var activityUri = NormalizeIdentifier(activity, "id", "ping");
         var actorUri = NormalizeIdentifier(activity, "actor");
         var toUri = NormalizeIdentifier(activity, "to");
-        var actorInbox = new Uri(actor["inbox"]!.ToString());
+        var actorInbox = actor.GetUri("inbox")!;
 
         using var context = contextFactory.CreateDbContext();
 
@@ -256,7 +255,7 @@ public class InboxService(
 
             if (!undone && actorUri == objActorUri)
             {
-                switch (obj["type"]!.ToString())
+                switch (obj.GetString("type"))
                 {
                     case "Like":
                         await UndoLikeAsync(
@@ -393,20 +392,25 @@ public class InboxService(
 
     private static Uri? NormalizeIdentifier(JsonObject obj, string property, string? path = null)
     {
+        string? str = null;
         var node = obj[property];
         if (node != null)
         {
             if (node.GetValueKind() == JsonValueKind.Object)
             {
-                obj[property] = node["id"]?.ToString() ?? node["href"]?.ToString();
+                str = node.GetString("id") ?? node.GetString("href");
+            }
+            else if (node.GetValueKind() == JsonValueKind.String)
+            {
+                str = node.GetString();
             }
         }
         if (path != null)
         {
-            obj[property] ??= GenerateLocalIdentifier(path).ToString();
+            str ??= GenerateLocalIdentifier(path).ToString();
         }
 
-        return obj[property] != null ? new Uri(obj[property]!.ToString()) : null;
+        return str != null ? new Uri(str) : null;
     }
 
     private static Uri GenerateLocalIdentifier(string context)
