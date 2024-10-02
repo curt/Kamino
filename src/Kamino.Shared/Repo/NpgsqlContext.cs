@@ -1,13 +1,9 @@
-using Kamino.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Kamino.Shared.Repo;
 
-public class NpgsqlContext : Context
+public class NpgsqlContext(DbContextOptions<NpgsqlContext> options) : Context(options)
 {
-    public NpgsqlContext(DbContextOptions<NpgsqlContext> options)
-        : base(options) { }
-
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         base.OnConfiguring(optionsBuilder);

@@ -1,4 +1,3 @@
-using Kamino.Admin.Client.Pages;
 using Kamino.Admin.Components;
 using Kamino.Admin.Components.Account;
 using Kamino.Shared.Entities;
@@ -33,10 +32,12 @@ builder
     })
     .AddIdentityCookies();
 
-builder.Services.AddDbContext<NpgsqlContext>(optionsBuilder =>
+var config = builder.Configuration;
+
+builder.Services.AddDbContextFactory<NpgsqlContext, NpgsqlContextFactory>(optionsBuilder =>
 {
     // See https://stackoverflow.com/a/76697983.
-    var pgsqlPassword = builder.Configuration["POSTGRES_PASSWORD"];
+    var pgsqlPassword = config["POSTGRES_PASSWORD"];
     var connectionString = $"Host=pgsqldb;Database=kamino;Username=kamino;Password={pgsqlPassword}";
     var dataSource = DbContextOptionsBuilderHelpers
         .CreateNpgsqlDataSourceBuilder(connectionString)
