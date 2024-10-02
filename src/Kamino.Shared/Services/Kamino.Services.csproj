@@ -4,7 +4,7 @@
     <ProjectReference Include="..\Kamino.Repo\Kamino.Repo.csproj" />
     <ProjectReference Include="..\Kamino.Shared\Kamino.Shared.csproj" />
     <ProjectReference Include="..\Kamino.Shared\Kamino.Shared.csproj" />
-    <ProjectReference Include="..\Kamino.Repo.Npgsql\Kamino.Repo.Npgsql.csproj" />
+    <ProjectReference Include="..\Kamino.Shared\Kamino.Shared.csproj" />
   </ItemGroup>
 
   <ItemGroup>

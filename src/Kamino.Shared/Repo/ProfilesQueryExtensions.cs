@@ -1,6 +1,6 @@
 using Kamino.Entities;
 
-namespace Kamino.Repo;
+namespace Kamino.Shared.Repo;
 
 public static class ProfilesQueryExtensions
 {

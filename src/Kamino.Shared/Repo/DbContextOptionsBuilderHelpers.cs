@@ -2,7 +2,7 @@ using Kamino.Entities;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
-namespace Kamino.Repo.Npgsql;
+namespace Kamino.Shared.Repo;
 
 public static class DbContextOptionsBuilderHelpers
 {

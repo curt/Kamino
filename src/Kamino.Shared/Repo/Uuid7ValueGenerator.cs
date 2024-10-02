@@ -2,7 +2,7 @@ using Medo;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.ValueGeneration;
 
-namespace Kamino.Repo;
+namespace Kamino.Shared.Repo;
 
 public class Uuid7ValueGenerator : ValueGenerator<Guid>
 {

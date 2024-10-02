@@ -1,7 +1,7 @@
 using Kamino.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace Kamino.Repo;
+namespace Kamino.Shared.Repo;
 
 public abstract class Context : DbContext
 {

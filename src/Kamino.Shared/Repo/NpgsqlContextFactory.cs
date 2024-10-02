@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 
-namespace Kamino.Repo.Npgsql;
+namespace Kamino.Shared.Repo;
 
-public class NpgsqlContextFactory(DbContextOptions<NpgsqlContext> options) :
-    IDbContextFactory<NpgsqlContext>
+public class NpgsqlContextFactory(DbContextOptions<NpgsqlContext> options)
+    : IDbContextFactory<NpgsqlContext>
 {
     public NpgsqlContext CreateDbContext()
     {

@@ -7,7 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="EFCore.NamingConventions" Version="8.0.3" />
     <PackageReference Include="FluentValidation" Version="11.9.2" />
+    <PackageReference Include="Medo.Uuid7" Version="2.0.0" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.4" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="8.0.4" />
     <PackageReference Include="SevenKilo.HttpSignatures" Version="0.0.1-alpha.10.gfcdac5f609" />
   </ItemGroup>
 
@@ -17,8 +21,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Kamino.Entities\Kamino.Entities.csproj" />
-    <ProjectReference Include="..\Kamino.Repo\Kamino.Repo.csproj" />
-    <ProjectReference Include="..\Kamino.Repo.Npgsql\Kamino.Repo.Npgsql.csproj" />
   </ItemGroup>
 
 </Project>

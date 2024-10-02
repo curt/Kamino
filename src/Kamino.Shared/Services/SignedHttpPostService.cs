@@ -1,7 +1,7 @@
 using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text.Json;
-using Kamino.Repo.Npgsql;
+using Kamino.Shared.Repo;
 using Microsoft.EntityFrameworkCore;
 using SevenKilo.HttpSignatures;
 

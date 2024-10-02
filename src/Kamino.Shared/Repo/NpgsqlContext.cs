@@ -1,13 +1,14 @@
 using Kamino.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace Kamino.Repo.Npgsql;
+namespace Kamino.Shared.Repo;
 
 public class NpgsqlContext : Context
 {
     public NpgsqlContext() { }
 
-    public NpgsqlContext(DbContextOptions<NpgsqlContext> options) : base(options) { }
+    public NpgsqlContext(DbContextOptions<NpgsqlContext> options)
+        : base(options) { }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -25,6 +26,8 @@ public class NpgsqlContext : Context
         modelBuilder.HasPostgresEnum<PostType>();
         modelBuilder.HasPostgresEnum<SourceType>();
 
-        modelBuilder.Entity<Place>(e => e.Property(p => p.Location).HasColumnType("geography (point)"));
+        modelBuilder.Entity<Place>(e =>
+            e.Property(p => p.Location).HasColumnType("geography (point)")
+        );
     }
 }

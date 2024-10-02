@@ -1,5 +1,5 @@
 using Kamino.Entities;
-using Kamino.Repo.Npgsql;
+using Kamino.Shared.Repo;
 using Microsoft.EntityFrameworkCore;
 using SevenKilo.HttpSignatures;
 

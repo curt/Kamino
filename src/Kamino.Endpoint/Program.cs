@@ -3,7 +3,7 @@ using AspNetCore.Authentication.Basic;
 using Fluid;
 using Fluid.MvcViewEngine;
 using Kamino.Endpoint;
-using Kamino.Repo.Npgsql;
+using Kamino.Shared.Repo;
 using Kamino.Shared.Services;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.AspNetCore.HttpOverrides;

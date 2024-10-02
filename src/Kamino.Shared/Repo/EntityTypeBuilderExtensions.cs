@@ -1,11 +1,12 @@
 using Kamino.Entities;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Kamino.Repo;
+namespace Kamino.Shared.Repo;
 
 internal static class EntityTypeBuilderExtensions
 {
-    internal static EntityTypeBuilder<T> IsIdentifiableEntity<T>(this EntityTypeBuilder<T> e) where T : IdentifiableEntity
+    internal static EntityTypeBuilder<T> IsIdentifiableEntity<T>(this EntityTypeBuilder<T> e)
+        where T : IdentifiableEntity
     {
         e.Property(p => p.Id).HasValueGenerator<Uuid7ValueGenerator>();
         e.Property(p => p.CreatedAt).IsRequired();
@@ -13,7 +14,8 @@ internal static class EntityTypeBuilderExtensions
         return e;
     }
 
-    internal static EntityTypeBuilder<T> IsBasicEntity<T>(this EntityTypeBuilder<T> e) where T : BasicEntity
+    internal static EntityTypeBuilder<T> IsBasicEntity<T>(this EntityTypeBuilder<T> e)
+        where T : BasicEntity
     {
         e.IsIdentifiableEntity();
 
