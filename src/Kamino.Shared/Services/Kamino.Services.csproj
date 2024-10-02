@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\Kamino.Repo\Kamino.Repo.csproj" />
+    <ProjectReference Include="..\Kamino.Shared\Kamino.Shared.csproj" />
+    <ProjectReference Include="..\Kamino.Shared\Kamino.Shared.csproj" />
+    <ProjectReference Include="..\Kamino.Shared\Kamino.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SevenKilo.HttpSignatures" Version="0.0.1-alpha.10.gfcdac5f609" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>

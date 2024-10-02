@@ -7,4 +7,4 @@ while ! pg_isready -U ${POSTGRES_USER:-kamino} -d postgres://${POSTGRES_HOST:-pg
 done
 
 echo "-- Starting!"
-./Kamino.Endpoint
+./Kamino.Public

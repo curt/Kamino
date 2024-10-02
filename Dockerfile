@@ -6,7 +6,7 @@ WORKDIR /build
 
 # copy and publish app and libraries
 COPY . .
-RUN dotnet publish ./src/Kamino.Endpoint/Kamino.Endpoint.csproj -a $TARGETARCH -o /app
+RUN dotnet publish ./src/Kamino.Public/Kamino.Public.csproj -a $TARGETARCH -o /app
 
 # Enable globalization and time zones:
 # https://github.com/dotnet/dotnet-docker/blob/main/samples/enable-globalization.md
