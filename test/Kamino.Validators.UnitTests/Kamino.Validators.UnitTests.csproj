@@ -21,7 +21,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Kamino.Models\Kamino.Models.csproj" />
     <ProjectReference Include="..\..\src\Kamino.Shared\Kamino.Shared.csproj" />
   </ItemGroup>
 

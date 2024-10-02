@@ -1,6 +1,6 @@
 using Kamino.Entities;
-using Kamino.Models;
 using Kamino.Repo;
+using Kamino.Shared.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Kamino.Shared.Services;

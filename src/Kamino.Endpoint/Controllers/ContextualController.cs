@@ -1,4 +1,4 @@
-using Kamino.Models;
+using Kamino.Shared.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 

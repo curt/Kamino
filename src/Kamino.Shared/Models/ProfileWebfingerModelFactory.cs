@@ -1,6 +1,7 @@
-namespace Kamino.Models;
+namespace Kamino.Shared.Models;
 
-public class ProfileWebfingerModelFactory(Uri endpoint) : ModelFactoryBase<Profile, ProfileWebfingerModel>(endpoint)
+public class ProfileWebfingerModelFactory(Uri endpoint)
+    : ModelFactoryBase<Profile, ProfileWebfingerModel>(endpoint)
 {
     public override ProfileWebfingerModel Create(Profile entity)
     {
@@ -9,7 +10,15 @@ public class ProfileWebfingerModelFactory(Uri endpoint) : ModelFactoryBase<Profi
         return new ProfileWebfingerModel()
         {
             Aliases = [profileUri],
-            Links = [new LinkWebfingerModel() { Href = profileUri, Rel = "self", Type = "application/activity+json" }],
+            Links =
+            [
+                new LinkWebfingerModel()
+                {
+                    Href = profileUri,
+                    Rel = "self",
+                    Type = "application/activity+json",
+                },
+            ],
             Subject = $"acct:{entity.Name}@{UriInternalizer.ExternalHost}",
         };
     }

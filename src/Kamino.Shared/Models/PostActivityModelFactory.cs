@@ -1,4 +1,4 @@
-namespace Kamino.Models;
+namespace Kamino.Shared.Models;
 
 public class PostActivityModelFactory(Uri endpoint)
     : ModelFactoryBase<Post, PostActivityModel>(endpoint)

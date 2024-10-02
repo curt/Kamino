@@ -1,6 +1,6 @@
 using System.Net.Http.Headers;
 using Kamino.Entities;
-using Kamino.Models;
+using Kamino.Shared.Models;
 using SevenKilo.HttpSignatures;
 
 namespace Kamino.Shared.Services;

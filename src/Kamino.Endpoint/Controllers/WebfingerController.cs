@@ -1,5 +1,5 @@
-using Kamino.Models;
 using Kamino.Repo.Npgsql;
+using Kamino.Shared.Models;
 using Kamino.Shared.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;

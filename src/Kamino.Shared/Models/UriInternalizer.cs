@@ -1,8 +1,11 @@
-namespace Kamino.Models;
+namespace Kamino.Shared.Models;
 
 public class UriInternalizer(Uri endpoint)
 {
-    public string ExternalHost { get => endpoint.Host; }
+    public string ExternalHost
+    {
+        get => endpoint.Host;
+    }
 
     public string? Externalize(string? uriString)
     {
@@ -41,7 +44,11 @@ public class UriInternalizer(Uri endpoint)
         {
             var builder = new UriBuilder(uri);
 
-            if (builder.Scheme == endpoint.Scheme && builder.Host == endpoint.Host && builder.Port == endpoint.Port)
+            if (
+                builder.Scheme == endpoint.Scheme
+                && builder.Host == endpoint.Host
+                && builder.Port == endpoint.Port
+            )
             {
                 builder.Scheme = Constants.InternalScheme;
                 builder.Host = Constants.InternalHost;

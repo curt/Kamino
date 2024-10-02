@@ -1,4 +1,4 @@
-namespace Kamino.Models;
+namespace Kamino.Shared.Models;
 
 public class PostApiModelFactory(Uri endpoint) : ModelFactoryBase<Post, PostApiModel>(endpoint)
 {
@@ -23,7 +23,7 @@ public class PostApiModelFactory(Uri endpoint) : ModelFactoryBase<Post, PostApiM
             EditedAt = post.EditedAt,
             AuthorUri = UriInternalizer.Externalize(post.Author?.Uri),
             Places = post.Places.Select(p => UriInternalizer.Externalize(p?.Uri) ?? string.Empty),
-            Tags = post.Tags.Select(t => t?.Title ?? string.Empty)
+            Tags = post.Tags.Select(t => t?.Title ?? string.Empty),
         };
     }
 
@@ -33,13 +33,17 @@ public class PostApiModelFactory(Uri endpoint) : ModelFactoryBase<Post, PostApiM
         {
             Uri = UriInternalizer.Internalize(model.Uri),
             Url = UriInternalizer.Internalize(model.Url),
-            PostType = Enum.TryParse(model.PostType, out PostType postType) ? postType : PostType.Note,
+            PostType = Enum.TryParse(model.PostType, out PostType postType)
+                ? postType
+                : PostType.Note,
             ContextUri = UriInternalizer.Internalize(model.ContextUri),
             InReplyToUri = UriInternalizer.Internalize(model.InReplyToUri),
             Slug = model.Slug,
             Title = model.Title,
             Summary = model.Summary,
-            SourceType = Enum.TryParse(model.SourceType, out SourceType sourceType) ? sourceType : SourceType.Markdown,
+            SourceType = Enum.TryParse(model.SourceType, out SourceType sourceType)
+                ? sourceType
+                : SourceType.Markdown,
             Source = model.Source,
             StartsAt = model.StartsAt,
             EndsAt = model.EndsAt,

@@ -1,4 +1,4 @@
-using Kamino.Models;
+using Kamino.Shared.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Kamino.Endpoint.Controllers;
@@ -12,7 +12,7 @@ public class ErrorController : ContextualController
         var model = new StatusCodeViewModel()
         {
             Title = statusCode.ToString(),
-            StatusCode = statusCode
+            StatusCode = statusCode,
         };
 
         return View("get.html", model);

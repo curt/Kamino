@@ -16,9 +16,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Kamino.Repo.Npgsql\Kamino.Repo.Npgsql.csproj" />
+    <ProjectReference Include="..\Kamino.Entities\Kamino.Entities.csproj" />
     <ProjectReference Include="..\Kamino.Repo\Kamino.Repo.csproj" />
-    <ProjectReference Include="..\Kamino.Models\Kamino.Models.csproj" />
     <ProjectReference Include="..\Kamino.Repo.Npgsql\Kamino.Repo.Npgsql.csproj" />
   </ItemGroup>
 

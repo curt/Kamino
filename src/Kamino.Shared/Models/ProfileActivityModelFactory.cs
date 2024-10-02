@@ -1,4 +1,4 @@
-namespace Kamino.Models;
+namespace Kamino.Shared.Models;
 
 public class ProfileActivityModelFactory(Uri endpoint)
     : ModelFactoryBase<Profile, ProfileActivityModel>(endpoint)

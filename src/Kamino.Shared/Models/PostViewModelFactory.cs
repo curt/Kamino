@@ -1,4 +1,4 @@
-namespace Kamino.Models;
+namespace Kamino.Shared.Models;
 
 public class PostViewModelFactory(Uri endpoint) : ModelFactoryBase<Post, PostViewModel>(endpoint)
 {
