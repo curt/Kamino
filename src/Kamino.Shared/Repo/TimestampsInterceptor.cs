@@ -1,4 +1,4 @@
-using Kamino.Entities;
+using Kamino.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 

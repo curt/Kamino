@@ -1,5 +1,5 @@
 using System.Net.Http.Headers;
-using Kamino.Entities;
+using Kamino.Shared.Entities;
 using Kamino.Shared.Models;
 using SevenKilo.HttpSignatures;
 

@@ -2,7 +2,7 @@ using System.Linq.Expressions;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using FluentValidation.Results;
-using Kamino.Entities;
+using Kamino.Shared.Entities;
 using Kamino.Shared.Models;
 using Kamino.Shared.Repo;
 using Kamino.Shared.Validators;

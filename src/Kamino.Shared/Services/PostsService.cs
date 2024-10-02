@@ -1,4 +1,4 @@
-using Kamino.Entities;
+using Kamino.Shared.Entities;
 using Kamino.Shared.Models;
 using Kamino.Shared.Repo;
 using Microsoft.EntityFrameworkCore;

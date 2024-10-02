@@ -1,4 +1,4 @@
-using Kamino.Entities;
+using Kamino.Shared.Entities;
 
 namespace Kamino.Shared.Repo;
 

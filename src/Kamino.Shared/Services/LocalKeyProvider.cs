@@ -1,4 +1,4 @@
-using Kamino.Entities;
+using Kamino.Shared.Entities;
 using Kamino.Shared.Repo;
 using Microsoft.EntityFrameworkCore;
 using SevenKilo.HttpSignatures;
