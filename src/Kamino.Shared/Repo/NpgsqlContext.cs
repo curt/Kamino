@@ -5,16 +5,12 @@ namespace Kamino.Shared.Repo;
 
 public class NpgsqlContext : Context
 {
-    public NpgsqlContext() { }
-
     public NpgsqlContext(DbContextOptions<NpgsqlContext> options)
         : base(options) { }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         base.OnConfiguring(optionsBuilder);
-
-        optionsBuilder.UseSnakeCaseNamingConvention();
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

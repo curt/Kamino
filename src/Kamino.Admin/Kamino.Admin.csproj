@@ -22,4 +22,8 @@
     <PackageReference Include="Extensions.MudBlazor.StaticInput" Version="2.*" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Kamino.Shared\Kamino.Shared.csproj" />
+  </ItemGroup>
+
 </Project>

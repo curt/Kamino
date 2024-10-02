@@ -37,7 +37,7 @@ builder.Services.AddDbContextFactory<NpgsqlContext, NpgsqlContextFactory>(option
         npgsqlOptionsBuilder =>
         {
             npgsqlOptionsBuilder.UseNetTopologySuite();
-            npgsqlOptionsBuilder.MigrationsAssembly("Kamino.Repo.Npgsql");
+            npgsqlOptionsBuilder.MigrationsAssembly("Kamino.Shared");
             npgsqlOptionsBuilder.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
         }
     );

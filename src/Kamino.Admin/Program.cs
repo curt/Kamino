@@ -1,11 +1,12 @@
+using Kamino.Admin.Client.Pages;
+using Kamino.Admin.Components;
+using Kamino.Admin.Components.Account;
+using Kamino.Shared.Entities;
+using Kamino.Shared.Repo;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor.Services;
-using Kamino.Admin.Client.Pages;
-using Kamino.Admin.Components;
-using Kamino.Admin.Components.Account;
-using Kamino.Admin.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,29 +14,51 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddMudServices();
 
 // Add services to the container.
-builder.Services.AddRazorComponents()
-    .AddInteractiveWebAssemblyComponents();
+builder.Services.AddRazorComponents().AddInteractiveWebAssemblyComponents();
 
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityUserAccessor>();
 builder.Services.AddScoped<IdentityRedirectManager>();
-builder.Services.AddScoped<AuthenticationStateProvider, PersistingServerAuthenticationStateProvider>();
+builder.Services.AddScoped<
+    AuthenticationStateProvider,
+    PersistingServerAuthenticationStateProvider
+>();
 
 builder.Services.AddAuthorization();
-builder.Services.AddAuthentication(options =>
+builder
+    .Services.AddAuthentication(options =>
     {
         options.DefaultScheme = IdentityConstants.ApplicationScheme;
         options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
     })
     .AddIdentityCookies();
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite(connectionString));
+builder.Services.AddDbContext<NpgsqlContext>(optionsBuilder =>
+{
+    // See https://stackoverflow.com/a/76697983.
+    var pgsqlPassword = builder.Configuration["POSTGRES_PASSWORD"];
+    var connectionString = $"Host=pgsqldb;Database=kamino;Username=kamino;Password={pgsqlPassword}";
+    var dataSource = DbContextOptionsBuilderHelpers
+        .CreateNpgsqlDataSourceBuilder(connectionString)
+        .Build();
+
+    optionsBuilder.UseNpgsql(
+        dataSource,
+        npgsqlOptionsBuilder =>
+        {
+            npgsqlOptionsBuilder.UseNetTopologySuite();
+            npgsqlOptionsBuilder.MigrationsAssembly("Kamino.Shared");
+            npgsqlOptionsBuilder.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
+        }
+    );
+});
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
-    .AddEntityFrameworkStores<ApplicationDbContext>()
+builder
+    .Services.AddIdentityCore<ApplicationUser>(options =>
+        options.SignIn.RequireConfirmedAccount = true
+    )
+    .AddEntityFrameworkStores<NpgsqlContext>()
     .AddSignInManager()
     .AddDefaultTokenProviders();
 

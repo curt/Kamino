@@ -1,15 +1,12 @@
 using Kamino.Shared.Entities;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace Kamino.Shared.Repo;
 
-public abstract class Context : DbContext
+public abstract class Context(DbContextOptions options)
+    : IdentityDbContext<ApplicationUser>(options)
 {
-    public Context() { }
-
-    public Context(DbContextOptions options)
-        : base(options) { }
-
     public DbSet<Profile> Profiles { get; set; }
     public DbSet<Post> Posts { get; set; }
     public DbSet<Place> Places { get; set; }
@@ -21,6 +18,8 @@ public abstract class Context : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
+
         // Build base models
         modelBuilder.Entity<Profile>().IsBasicEntity();
         modelBuilder.Entity<Post>().IsBasicEntity();
