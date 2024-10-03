@@ -4,12 +4,17 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Kamino.Shared.Services;
 
-public class PostsService(Context context)
+public class PostsService(
+    IDbContextFactory<NpgsqlContext> contextFactory,
+    IdentifierProvider identifierProvider
+)
 {
     public async Task<IEnumerable<PostViewModel>> GetPostViewModelsAsync()
     {
         var now = DateTime.UtcNow;
-        var posts = await PublicPostsQueryBase()
+
+        using var context = contextFactory.CreateDbContext();
+        var posts = await PublicPostsQueryBase(context)
             .WherePublished(now)
             .WhereNotTombstoned()
             .ToListAsync();
@@ -20,7 +25,9 @@ public class PostsService(Context context)
     public async Task<IEnumerable<PostActivityModel>> GetPostActivityModelsAsync()
     {
         var now = DateTime.UtcNow;
-        var posts = await PublicPostsQueryBase()
+
+        using var context = contextFactory.CreateDbContext();
+        var posts = await PublicPostsQueryBase(context)
             .WherePublished(now)
             .WhereNotTombstoned()
             .ToListAsync();
@@ -31,7 +38,9 @@ public class PostsService(Context context)
     public async Task<PostViewModel> GetPostViewModelByUriAsync(Uri uri)
     {
         var now = DateTime.UtcNow;
-        var posts = await PublicPostsQueryBase().WhereUriMatch(uri).ToListAsync();
+
+        using var context = contextFactory.CreateDbContext();
+        var posts = await PublicPostsQueryBase(context).WhereUriMatch(uri).ToListAsync();
         var post = SinglePublicPost(posts, now);
 
         return CreatePostViewModel(post);
@@ -40,7 +49,9 @@ public class PostsService(Context context)
     public async Task<PostActivityModel> GetPostActivityModelByUriAsync(Uri uri)
     {
         var now = DateTime.UtcNow;
-        var posts = await PublicPostsQueryBase().WhereUriMatch(uri).ToListAsync();
+
+        using var context = contextFactory.CreateDbContext();
+        var posts = await PublicPostsQueryBase(context).WhereUriMatch(uri).ToListAsync();
         var post = SinglePublicPost(posts, now);
 
         return CreatePostActivityModel(post);
@@ -67,7 +78,7 @@ public class PostsService(Context context)
             AuthorName = post.Author?.DisplayName,
         };
 
-    private static PostActivityModel CreatePostActivityModel(Post post) =>
+    private PostActivityModel CreatePostActivityModel(Post post) =>
         new()
         {
             Id = post.Uri,
@@ -82,13 +93,13 @@ public class PostsService(Context context)
             Published = post.PublishedAt,
             Updated = post.EditedAt,
             To = [new Uri("https://www.w3.org/ns/activitystreams#Public")],
-            Cc = [new UriBuilder(Constants.LocalProfileUri) { Path = "/followers" }.Uri],
+            Cc = [new UriBuilder(identifierProvider.GetBase()) { Path = "/followers" }.Uri],
             AttributedTo = post.Author?.Uri,
         };
 
-    private IQueryable<Post> PublicPostsQueryBase()
+    private IQueryable<Post> PublicPostsQueryBase(Context context)
     {
-        var profiles = context.Profiles.WhereLocal();
+        var profiles = context.Profiles.WhereUriMatch(identifierProvider.GetProfileJson());
         var posts = context
             .Posts.Join(profiles, post => post.Author, profile => profile, (post, profile) => post)
             .Include(post => post.Author)
