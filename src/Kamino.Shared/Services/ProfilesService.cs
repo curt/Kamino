@@ -1,4 +1,3 @@
-using Kamino.Shared.Entities;
 using Kamino.Shared.Models;
 using Kamino.Shared.Repo;
 using Microsoft.EntityFrameworkCore;
@@ -7,23 +6,18 @@ namespace Kamino.Shared.Services;
 
 public class ProfilesService(Context context)
 {
-    public async Task<TModel> GetPublicProfileAsync<TModel>(
-        ModelFactoryBase<Profile, TModel> factory
-    )
+    public async Task<ProfileActivityModel> GetPublicProfileAsync()
     {
         var profile = await PublicProfileAsync();
 
-        return factory.Create(profile);
+        return CreateApiModel(profile);
     }
 
-    public async Task<TModel> GetPublicProfileByResourceAsync<TModel>(
-        string resource,
-        ModelFactoryBase<Profile, TModel> factory
-    )
+    public async Task<ProfileWebfingerModel> GetPublicProfileByResourceAsync(string resource)
     {
         var profile = await PublicProfileAsync();
         var name = profile.Name;
-        var host = factory.UriInternalizer.ExternalHost;
+        var host = profile.Uri!.Host;
 
         if (
             !(
@@ -35,8 +29,45 @@ public class ProfilesService(Context context)
             throw new NotFoundException();
         }
 
-        return factory.Create(profile);
+        return CreateWebfingerModel(profile);
     }
+
+    private static ProfileActivityModel CreateApiModel(Profile profile) =>
+        new()
+        {
+            Id = profile.Uri,
+            Type = "Person",
+            Inbox = new UriBuilder(profile.Uri!) { Path = "/inbox" }.Uri,
+            Outbox = new UriBuilder(profile.Uri!) { Path = "/outbox" }.Uri,
+            Followers = new UriBuilder(profile.Uri!) { Path = "/followers" }.Uri,
+            Following = new UriBuilder(profile.Uri!) { Path = "/following" }.Uri,
+            Name = profile.DisplayName,
+            PreferredUsername = profile.Name,
+            Summary = profile.Summary,
+            Url = profile.Url,
+            PublicKey = new
+            {
+                Id = profile.PublicKeyId,
+                Owner = profile.Uri,
+                PublicKeyPem = profile.PublicKey,
+            },
+        };
+
+    private static ProfileWebfingerModel CreateWebfingerModel(Profile profile) =>
+        new()
+        {
+            Aliases = [profile.Uri!],
+            Links =
+            [
+                new LinkWebfingerModel()
+                {
+                    Href = profile.Uri!,
+                    Rel = "self",
+                    Type = "application/activity+json",
+                },
+            ],
+            Subject = $"acct:{profile.Name}@{profile.Uri!.Host}",
+        };
 
     private async Task<Profile> PublicProfileAsync()
     {

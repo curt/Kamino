@@ -1,4 +1,3 @@
-using Kamino.Shared.Models;
 using Kamino.Shared.Repo;
 using Kamino.Shared.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -13,10 +12,8 @@ public class WebfingerController(IDbContextFactory<NpgsqlContext> contextFactory
     public async Task<IActionResult> Index([FromQuery] string resource)
     {
         using var context = contextFactory.CreateDbContext();
-
-        var factory = new ProfileWebfingerModelFactory(Request.GetEndpoint());
         var service = new ProfilesService(context);
-        var model = await service.GetPublicProfileByResourceAsync(resource, factory);
+        var model = await service.GetPublicProfileByResourceAsync(resource);
 
         return Json(model);
     }

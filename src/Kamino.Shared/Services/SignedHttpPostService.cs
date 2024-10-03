@@ -1,6 +1,5 @@
 using System.Net.Http.Headers;
 using System.Security.Cryptography;
-using System.Text.Json;
 using Kamino.Shared.Repo;
 using Microsoft.EntityFrameworkCore;
 using SevenKilo.HttpSignatures;
@@ -9,8 +8,7 @@ namespace Kamino.Shared.Services;
 
 public class SignedHttpPostService(
     IDbContextFactory<NpgsqlContext> contextFactory,
-    IHttpClientFactory httpClientFactory,
-    Uri endpoint
+    IHttpClientFactory httpClientFactory
 )
 {
     private static readonly JsonSerializerOptions s_jsonSerializerOptions =
@@ -26,12 +24,7 @@ public class SignedHttpPostService(
         var request = new HttpRequestMessage(HttpMethod.Post, uri) { Content = content };
         request.Headers.Add("Date", DateTime.UtcNow.ToString("R"));
         request.Headers.Add("Digest", $"sha-256={Convert.ToBase64String(SHA256.HashData(bytes))}");
-        var signatureRequest = new OutboundSignatureRequest(
-            uri,
-            HttpMethod.Post,
-            request.Headers,
-            endpoint
-        );
+        var signatureRequest = new OutboundSignatureRequest(uri, HttpMethod.Post, request.Headers);
         var signer = new Signature(GetKeyProvider());
         var result = await signer.SignAsync(signatureRequest);
         request.Headers.Add("Signature", signer.SignatureComposed);

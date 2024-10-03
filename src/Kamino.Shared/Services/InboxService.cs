@@ -1,8 +1,6 @@
 using System.Linq.Expressions;
-using System.Text.Json;
 using System.Text.Json.Nodes;
 using FluentValidation.Results;
-using Kamino.Shared.Entities;
 using Kamino.Shared.Models;
 using Kamino.Shared.Repo;
 using Kamino.Shared.Validators;
@@ -112,7 +110,7 @@ public class InboxService(
         {
             var like = new Like
             {
-                ActivityUri = activityUri,
+                Uri = activityUri,
                 ActorUri = actorUri,
                 ObjectUri = objectUri,
             };
@@ -148,7 +146,7 @@ public class InboxService(
         {
             var follow = new Follow
             {
-                ActivityUri = activityUri,
+                Uri = activityUri,
                 AcceptUri = acceptUri,
                 ActorUri = actorUri,
                 ObjectUri = objectUri,
@@ -165,11 +163,7 @@ public class InboxService(
             }
 
             var response = new FollowAcceptOutboundModel(follow);
-            var http = new SignedHttpPostService(
-                contextFactory,
-                httpClientFactory,
-                accessor.HttpContext!.Request.GetEndpoint()
-            );
+            var http = new SignedHttpPostService(contextFactory, httpClientFactory);
             await http.PostAsync(actorInbox, response);
         }
         else
@@ -191,17 +185,17 @@ public class InboxService(
 
         using var context = contextFactory.CreateDbContext();
 
-        var match = await context.Pings.Where(e => e.ActivityUri == activityUri).AnyAsync();
+        var match = await context.Pings.Where(e => e.Uri == activityUri).AnyAsync();
 
         if (!match)
         {
             var ping = new Ping
             {
-                ActivityUri = activityUri,
+                Uri = activityUri,
                 ActorUri = actorUri,
                 ToUri = toUri,
             };
-            var pong = new Pong { ActivityUri = GenerateLocalIdentifier("pong"), Ping = ping };
+            var pong = new Pong { Uri = GenerateLocalIdentifier("pong"), Ping = ping };
             context.Add(pong);
 
             if (await context.SaveChangesAsync() > 0)
@@ -210,11 +204,7 @@ public class InboxService(
             }
 
             var response = new PongOutboundModel(pong);
-            var http = new SignedHttpPostService(
-                contextFactory,
-                httpClientFactory,
-                accessor.HttpContext!.Request.GetEndpoint()
-            );
+            var http = new SignedHttpPostService(contextFactory, httpClientFactory);
             await http.PostAsync(actorInbox, response);
         }
         else
@@ -238,11 +228,11 @@ public class InboxService(
             undone =
                 undone
                 || await UndoLikeAsync(
-                    f => f.ActorUri == actorUri && f.ActivityUri == actObjectUri,
+                    f => f.ActorUri == actorUri && f.Uri == actObjectUri,
                     $"activity '{actObjectUri}'"
                 )
                 || await UndoFollowAsync(
-                    f => f.ActorUri == actorUri && f.ActivityUri == actObjectUri,
+                    f => f.ActorUri == actorUri && f.Uri == actObjectUri,
                     $"activity '{actObjectUri}'"
                 );
         }

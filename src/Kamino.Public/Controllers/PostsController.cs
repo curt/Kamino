@@ -1,88 +1,53 @@
-using Kamino.Shared.Entities;
-using Kamino.Shared.Models;
 using Kamino.Shared.Repo;
 using Kamino.Shared.Services;
-using Medo;
+using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace Kamino.Public.Controllers;
 
-[Route("p")]
+[Route("posts")]
 [ResponseCache(Duration = 30, Location = ResponseCacheLocation.Any, NoStore = false)]
-public class PostsController(
-    ILogger<PostsController> logger,
-    IDbContextFactory<NpgsqlContext> contextFactory
-) : ContextualController
+public class PostsController(IDbContextFactory<NpgsqlContext> contextFactory) : ContextualController
 {
-    public async Task<IActionResult> Index()
-    {
-        logger.LogDebug("Current endpoint: '{url}'", Request.GetEndpoint().ToString());
-
-        return await Contextualize(() => IndexHtml(), () => IndexJson());
-    }
-
-    [Route("{id:regex(^[[1-9A-Za-z]]{{22}}$)}")]
-    public async Task<IActionResult> Get(string id)
-    {
-        var guid = Uuid7.FromId22String(id).ToGuid();
-
-        logger.LogDebug("Current endpoint: '{url}'", Request.GetEndpoint().ToString());
-
-        return await Contextualize(() => GetHtml(guid), () => GetJson(guid));
-    }
-
-    private async Task<IActionResult> IndexHtml()
-    {
-        var factory = new PostViewModelFactory(Request.GetEndpoint());
-        var model = await IndexModel(factory);
-
-        return View("index.html", model);
-    }
-
-    private async Task<IActionResult> IndexJson()
-    {
-        var factory = new PostActivityModelFactory(Request.GetEndpoint());
-        var model = await IndexModel(factory);
-
-        return Json(model.Select(m => Contextify(m)));
-    }
-
-    private async Task<IEnumerable<TModel>> IndexModel<TModel>(
-        ModelFactoryBase<Post, TModel> factory
-    )
+    [HttpGet("index.html")]
+    public async Task<IActionResult> IndexHtml()
     {
         using var context = contextFactory.CreateDbContext();
+        var postViewModels = await new PostsService(context).GetPostViewModelsAsync();
 
-        var postsService = new PostsService(context);
-        var model = await postsService.GetPublicPostsAsync(factory);
-
-        return model;
+        return View("index.html", postViewModels);
     }
 
-    private async Task<IActionResult> GetHtml(Guid id)
-    {
-        var factory = new PostViewModelFactory(Request.GetEndpoint());
-        var model = await GetModel(id, factory);
-
-        return View("get.html", model);
-    }
-
-    private async Task<IActionResult> GetJson(Guid id)
-    {
-        var factory = new PostActivityModelFactory(Request.GetEndpoint());
-        var model = await GetModel(id, factory);
-
-        return Json(Contextify(model));
-    }
-
-    private async Task<TModel> GetModel<TModel>(Guid id, ModelFactoryBase<Post, TModel> factory)
+    [HttpGet("index.json")]
+    public async Task<IActionResult> IndexJson()
     {
         using var context = contextFactory.CreateDbContext();
+        var postActicityModels = await new PostsService(context).GetPostActivityModelsAsync();
 
-        var postsService = new PostsService(context);
-        var model = await postsService.GetSinglePublicPostByIdAsync(id, factory);
+        // TODO: Need to return ordered collection, not array.
+        return Json(postActicityModels.Select(m => Contextify(m)));
+    }
 
-        return model;
+    [Route("{id:regex(^[[1-9A-Za-z]]{{22}}$)}.html")]
+    public async Task<IActionResult> GetHtml(string id)
+    {
+        using var context = contextFactory.CreateDbContext();
+        var postViewModel = await new PostsService(context).GetPostViewModelByUriAsync(
+            new Uri(Request.GetEncodedUrl())
+        );
+
+        return View("get.html", postViewModel);
+    }
+
+    [Route("{id:regex(^[[1-9A-Za-z]]{{22}}$)}.json")]
+    public async Task<IActionResult> GetJson(string id)
+    {
+        using var context = contextFactory.CreateDbContext();
+        var postActivityModel = await new PostsService(context).GetPostActivityModelByUriAsync(
+            new Uri(Request.GetEncodedUrl())
+        );
+
+        return Json(Contextify(postActivityModel));
     }
 }

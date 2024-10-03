@@ -17,7 +17,7 @@ public class PostsApiController(IDbContextFactory<NpgsqlContext> contextFactory)
     {
         using var context = contextFactory.CreateDbContext();
 
-        var postsService = new PostsApiService(context, Request.GetEndpoint());
+        var postsService = new PostsApiService(context);
         var posts = await postsService.GetPostsAsync();
 
         return posts.ToList();
@@ -28,7 +28,7 @@ public class PostsApiController(IDbContextFactory<NpgsqlContext> contextFactory)
     {
         using var context = contextFactory.CreateDbContext();
 
-        var postsService = new PostsApiService(context, Request.GetEndpoint());
+        var postsService = new PostsApiService(context);
         var post = await postsService.PostPostAsync(model);
 
         return CreatedAtAction(nameof(GetAll), new { id = post.Uri }, post);

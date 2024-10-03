@@ -41,7 +41,10 @@ builder.Services.AddDbContextFactory<NpgsqlContext, NpgsqlContextFactory>(option
             npgsqlOptionsBuilder.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
         }
     );
+
+    optionsBuilder.EnableSensitiveDataLogging(builder.Environment.IsDevelopment());
 });
+
 builder
     .Services.AddAuthentication(BasicDefaults.AuthenticationScheme)
     .AddBasic<BasicUserValidationService>(options =>

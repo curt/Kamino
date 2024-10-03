@@ -1,11 +1,10 @@
-using Kamino.Shared.Entities;
 using Kamino.Shared.Models;
 using Kamino.Shared.Repo;
 using Microsoft.EntityFrameworkCore;
 
 namespace Kamino.Shared.Services;
 
-public class PostsApiService(Context context, Uri endpoint)
+public class PostsApiService(Context context)
 {
     public async Task<IEnumerable<PostApiModel>> GetPostsAsync()
     {
@@ -15,28 +14,68 @@ public class PostsApiService(Context context, Uri endpoint)
             .Include(post => post.Tags)
             .ToListAsync();
 
-        var factory = new PostApiModelFactory(endpoint);
-        var models = posts.Select(post => factory.Create(post));
+        var models = posts.Select(CreatePostApiModel);
 
         return models;
     }
 
-    public async Task<PostApiModel> PostPostAsync(PostApiModel model)
+    public async Task<PostApiModel> PostPostAsync(PostApiModel postApiModel)
     {
-        var factory = new PostApiModelFactory(endpoint);
-        Post post = factory.Parse(model);
-
-        var authorUri = factory.UriInternalizer.Internalize(model.AuthorUri!);
-        post.Author = await SingleProfileAsync(authorUri!);
-
+        Post post = CreatePost(postApiModel);
+        post.Author = await SingleProfileAsync(postApiModel.AuthorUri!);
         context.Add(post);
         AfterAddPost(post);
         context.SaveChanges();
 
-        return factory.Create(post);
+        return CreatePostApiModel(post);
     }
 
-    private async Task<Profile> SingleProfileAsync(string uri)
+    private static PostApiModel CreatePostApiModel(Post post) =>
+        new()
+        {
+            Uri = post.Uri,
+            Url = post.Url,
+            PostType = post.PostType.ToString(),
+            ContextUri = post.ContextUri,
+            InReplyToUri = post.InReplyToUri,
+            Slug = post.Slug,
+            Title = post.Title,
+            Summary = post.Summary,
+            SourceType = post.SourceType.ToString(),
+            Source = post.Source,
+            StartsAt = post.StartsAt,
+            EndsAt = post.EndsAt,
+            PublishedAt = post.PublishedAt,
+            EditedAt = post.EditedAt,
+            AuthorUri = post.Author?.Uri,
+            Places = post.Places.Select(p => p.Uri!),
+            Tags = post.Tags.Select(t => t.NormalizedTitle!),
+        };
+
+    private static Post CreatePost(PostApiModel postApiModel) =>
+        new()
+        {
+            Uri = postApiModel.Uri,
+            Url = postApiModel.Url,
+            PostType = Enum.TryParse(postApiModel.PostType, out PostType postType)
+                ? postType
+                : PostType.Note,
+            ContextUri = postApiModel.ContextUri,
+            InReplyToUri = postApiModel.InReplyToUri,
+            Slug = postApiModel.Slug,
+            Title = postApiModel.Title,
+            Summary = postApiModel.Summary,
+            SourceType = Enum.TryParse(postApiModel.SourceType, out SourceType sourceType)
+                ? sourceType
+                : SourceType.Markdown,
+            Source = postApiModel.Source,
+            StartsAt = postApiModel.StartsAt,
+            EndsAt = postApiModel.EndsAt,
+            PublishedAt = postApiModel.PublishedAt,
+            EditedAt = postApiModel.EditedAt,
+        };
+
+    private async Task<Profile> SingleProfileAsync(Uri uri)
     {
         return await context
                 .Profiles.WhereLocal()
@@ -46,9 +85,9 @@ public class PostsApiService(Context context, Uri endpoint)
 
     private static void AfterAddPost(Post post)
     {
-        if (post.Id != null)
+        if (post.Uri == null)
         {
-            var guid = post.Id.Value;
+            var guid = Medo.Uuid7.NewGuid();
 
             var uri = PostUriFromGuid(guid);
             post.Uri = uri;
@@ -59,17 +98,17 @@ public class PostsApiService(Context context, Uri endpoint)
         }
     }
 
-    private static string PostUriFromGuid(Guid guid) => UriFromGuid(guid, "/p/{0}");
+    private static Uri PostUriFromGuid(Guid guid) => UriFromGuid(guid, "/p/{0}");
 
-    private static string ContextUriFromGuid(Guid guid) => UriFromGuid(guid, "/ctx/{0}");
+    private static Uri ContextUriFromGuid(Guid guid) => UriFromGuid(guid, "/ctx/{0}");
 
-    private static string UriFromGuid(Guid guid, string format)
+    private static Uri UriFromGuid(Guid guid, string format)
     {
         var uri = new UriBuilder(Constants.LocalProfileUri)
         {
             Path = string.Format(format, guid.ToId22()),
         };
 
-        return uri.Uri.ToString();
+        return uri.Uri;
     }
 }
