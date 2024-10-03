@@ -53,12 +53,15 @@ builder
     });
 
 // Add services to the container.
-builder.Services.AddHttpContextAccessor();
-builder.Services.AddHttpClient();
-builder.Services.AddSingleton<IdentifierProvider>();
-builder.Services.AddTransient<InboxService>();
-builder.Services.AddTransient<PostsService>();
-builder.Services.AddTransient<ProfilesService>();
+builder
+    .Services.AddHttpContextAccessor()
+    .AddHttpClient()
+    .AddSingleton<IdentifierProvider>()
+    .AddTransient<LocalKeyProvider>()
+    .AddTransient<SignedHttpPostService>()
+    .AddTransient<InboxService>()
+    .AddTransient<PostsService>()
+    .AddTransient<ProfilesService>();
 
 builder.Services.Configure<FluidMvcViewOptions>(options =>
 {

@@ -19,7 +19,8 @@ public class InboxService(
     ILogger<InboxService> logger,
     IHttpContextAccessor accessor,
     IHttpClientFactory httpClientFactory,
-    IdentifierProvider identifierProvider
+    IdentifierProvider identifierProvider,
+    SignedHttpPostService signedHttpPostService
 )
 {
     public async Task ReceiveAsync(JsonObject activity)
@@ -164,8 +165,7 @@ public class InboxService(
             }
 
             var response = new FollowAcceptOutboundModel(follow);
-            var http = new SignedHttpPostService(contextFactory, httpClientFactory);
-            await http.PostAsync(actorInbox, response);
+            await signedHttpPostService.PostAsync(actorInbox, response);
         }
         else
         {
@@ -205,8 +205,7 @@ public class InboxService(
             }
 
             var response = new PongOutboundModel(pong);
-            var http = new SignedHttpPostService(contextFactory, httpClientFactory);
-            await http.PostAsync(actorInbox, response);
+            await signedHttpPostService.PostAsync(actorInbox, response);
         }
         else
         {
