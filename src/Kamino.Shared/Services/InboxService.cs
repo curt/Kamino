@@ -18,8 +18,9 @@ public class InboxService(
     IConfiguration configuration,
     ILogger<InboxService> logger,
     IHttpContextAccessor accessor,
-    IHttpClientFactory httpClientFactory
-) : IInboxService
+    IHttpClientFactory httpClientFactory,
+    IdentifierProvider identifierProvider
+)
 {
     public async Task ReceiveAsync(JsonObject activity)
     {
@@ -380,7 +381,7 @@ public class InboxService(
         }
     }
 
-    private static Uri? NormalizeIdentifier(JsonObject obj, string property, string? path = null)
+    private Uri? NormalizeIdentifier(JsonObject obj, string property, string? path = null)
     {
         string? str = null;
         var node = obj[property];
@@ -403,10 +404,10 @@ public class InboxService(
         return str != null ? new Uri(str) : null;
     }
 
-    private static Uri GenerateLocalIdentifier(string context)
+    private Uri GenerateLocalIdentifier(string context)
     {
         context = context.Trim('/');
-        var authority = Constants.InternalHost;
+        var authority = identifierProvider.GetBase().Host;
         var date = DateTime.UtcNow.Year;
         var id = Uuid7.NewUuid7().ToId22String();
 

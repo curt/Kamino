@@ -6,7 +6,7 @@ namespace Kamino.Public.Controllers;
 
 [ApiController]
 [Route("inbox")]
-public class InboxController(IInboxService inboxService) : ControllerBase
+public class InboxController(InboxService inboxService) : ControllerBase
 {
     [HttpPost]
     public async Task<IActionResult> Post([FromBody] JsonObject model)

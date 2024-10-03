@@ -56,7 +56,7 @@ builder
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient();
 builder.Services.AddSingleton<IdentifierProvider>();
-builder.Services.AddTransient<IInboxService, InboxService>();
+builder.Services.AddTransient<InboxService>();
 builder.Services.AddTransient<PostsService>();
 builder.Services.AddTransient<ProfilesService>();
 
