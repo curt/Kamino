@@ -55,6 +55,7 @@ builder
 // Add services to the container.
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient();
+builder.Services.AddSingleton<IdentifierProvider>();
 builder.Services.AddTransient<IInboxService, InboxService>();
 
 builder.Services.Configure<FluidMvcViewOptions>(options =>
