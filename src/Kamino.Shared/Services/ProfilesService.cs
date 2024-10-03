@@ -4,18 +4,23 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Kamino.Shared.Services;
 
-public class ProfilesService(Context context)
+public class ProfilesService(
+    IDbContextFactory<NpgsqlContext> contextFactory,
+    IdentifierProvider identifierProvider
+)
 {
     public async Task<ProfileActivityModel> GetPublicProfileAsync()
     {
-        var profile = await PublicProfileAsync();
+        using var context = contextFactory.CreateDbContext();
+        var profile = await PublicProfileAsync(context);
 
         return CreateApiModel(profile);
     }
 
     public async Task<ProfileWebfingerModel> GetPublicProfileByResourceAsync(string resource)
     {
-        var profile = await PublicProfileAsync();
+        using var context = contextFactory.CreateDbContext();
+        var profile = await PublicProfileAsync(context);
         var name = profile.Name;
         var host = profile.Uri!.Host;
 
@@ -69,9 +74,10 @@ public class ProfilesService(Context context)
             Subject = $"acct:{profile.Name}@{profile.Uri!.Host}",
         };
 
-    private async Task<Profile> PublicProfileAsync()
+    private async Task<Profile> PublicProfileAsync(Context context)
     {
-        return await context.Profiles.WhereLocal().SingleOrDefaultAsync()
-            ?? throw new NotFoundException();
+        return await context
+                .Profiles.WhereUriMatch(identifierProvider.GetProfileJson())
+                .SingleOrDefaultAsync() ?? throw new NotFoundException();
     }
 }
