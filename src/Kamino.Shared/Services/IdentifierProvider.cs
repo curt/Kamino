@@ -48,4 +48,11 @@ public class IdentifierProvider(IConfiguration configuration)
         {
             Path = $"/posts/{uuid7.ToId22String()}.json",
         }.Uri;
+
+    public Uri GetTag(Uuid7 uuid7, string context) =>
+        new(
+            $"tag:{GetBase().Host},{DateTime.UtcNow.Year}:{context.Trim('/')}/{uuid7.ToId22String()}"
+        );
+
+    public Uri GetTag(string context) => GetTag(Uuid7.NewUuid7(), context);
 }
