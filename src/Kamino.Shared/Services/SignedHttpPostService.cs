@@ -6,7 +6,8 @@ namespace Kamino.Shared.Services;
 
 public class SignedHttpPostService(
     IHttpClientFactory httpClientFactory,
-    LocalKeyProvider localKeyProvider
+    LocalKeyProvider localKeyProvider,
+    IdentifierProvider identifierProvider
 )
 {
     private static readonly JsonSerializerOptions s_jsonSerializerOptions =
@@ -22,7 +23,12 @@ public class SignedHttpPostService(
         var request = new HttpRequestMessage(HttpMethod.Post, uri) { Content = content };
         request.Headers.Add("Date", DateTime.UtcNow.ToString("R"));
         request.Headers.Add("Digest", $"sha-256={Convert.ToBase64String(SHA256.HashData(bytes))}");
-        var signatureRequest = new OutboundSignatureRequest(uri, HttpMethod.Post, request.Headers);
+        var signatureRequest = new OutboundSignatureRequest(
+            uri,
+            HttpMethod.Post,
+            request.Headers,
+            identifierProvider
+        );
         var signer = new Signature(localKeyProvider);
         var result = await signer.SignAsync(signatureRequest);
         request.Headers.Add("Signature", signer.SignatureComposed);
