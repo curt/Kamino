@@ -1,13 +1,18 @@
 using Kamino.Shared.Models;
 using Kamino.Shared.Repo;
+using Medo;
 using Microsoft.EntityFrameworkCore;
 
 namespace Kamino.Shared.Services;
 
-public class PostsApiService(Context context)
+public class PostsApiService(
+    IDbContextFactory<NpgsqlContext> contextFactory,
+    IdentifierProvider identifierProvider
+)
 {
     public async Task<IEnumerable<PostApiModel>> GetPostsAsync()
     {
+        using var context = contextFactory.CreateDbContext();
         var posts = await context
             .Posts.Include(post => post.Author)
             .Include(post => post.Places)
@@ -21,10 +26,11 @@ public class PostsApiService(Context context)
 
     public async Task<PostApiModel> PostPostAsync(PostApiModel postApiModel)
     {
+        using var context = contextFactory.CreateDbContext();
         Post post = CreatePost(postApiModel);
+        AfterCreatePost(post);
         post.Author = await SingleProfileAsync(postApiModel.AuthorUri!);
         context.Add(post);
-        AfterAddPost(post);
         context.SaveChanges();
 
         return CreatePostApiModel(post);
@@ -77,38 +83,21 @@ public class PostsApiService(Context context)
 
     private async Task<Profile> SingleProfileAsync(Uri uri)
     {
+        using var context = contextFactory.CreateDbContext();
         return await context
-                .Profiles.WhereLocal()
+                .Profiles.WhereUriMatch(identifierProvider.GetProfileJson())
                 .Where(profile => profile.Uri == uri)
                 .SingleOrDefaultAsync() ?? throw new BadRequestException();
     }
 
-    private static void AfterAddPost(Post post)
+    private void AfterCreatePost(Post post)
     {
         if (post.Uri == null)
         {
-            var guid = Medo.Uuid7.NewGuid();
-
-            var uri = PostUriFromGuid(guid);
-            post.Uri = uri;
-            post.Url = uri;
-
-            var contextUri = ContextUriFromGuid(guid);
-            post.ContextUri ??= contextUri;
+            var uuid7 = Uuid7.NewUuid7();
+            post.Uri = identifierProvider.GetPostJson(uuid7);
+            post.Url = identifierProvider.GetPostHtml(uuid7);
+            post.ContextUri ??= identifierProvider.GetTag(uuid7, "conversation");
         }
-    }
-
-    private static Uri PostUriFromGuid(Guid guid) => UriFromGuid(guid, "/p/{0}");
-
-    private static Uri ContextUriFromGuid(Guid guid) => UriFromGuid(guid, "/ctx/{0}");
-
-    private static Uri UriFromGuid(Guid guid, string format)
-    {
-        var uri = new UriBuilder(Constants.LocalProfileUri)
-        {
-            Path = string.Format(format, guid.ToId22()),
-        };
-
-        return uri.Uri;
     }
 }

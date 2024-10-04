@@ -61,6 +61,7 @@ builder
     .AddTransient<SignedHttpPostService>()
     .AddTransient<InboxService>()
     .AddTransient<PostsService>()
+    .AddTransient<PostsApiService>()
     .AddTransient<ProfilesService>();
 
 builder.Services.Configure<FluidMvcViewOptions>(options =>
