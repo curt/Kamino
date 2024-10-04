@@ -3,10 +3,10 @@ using Microsoft.AspNetCore.Mvc;
 namespace Kamino.Public.Controllers;
 
 [ApiController]
-[Route("following")]
+[Route("")]
 public class FollowingController : ControllerBase
 {
-    [HttpGet]
+    [HttpGet("following.json")]
     public ActionResult Get()
     {
         return Empty;

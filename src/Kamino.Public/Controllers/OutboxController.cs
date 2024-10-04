@@ -3,10 +3,10 @@ using Microsoft.AspNetCore.Mvc;
 namespace Kamino.Public.Controllers;
 
 [ApiController]
-[Route("outbox")]
+[Route("")]
 public class OutboxController : ControllerBase
 {
-    [HttpGet]
+    [HttpGet("outbox.json")]
     public ActionResult Get()
     {
         return Empty;
