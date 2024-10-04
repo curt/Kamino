@@ -40,20 +40,20 @@ public class ProfilesService(
     private ProfileActivityModel CreatePublicActivityModel(Profile profile) =>
         new()
         {
-            Id = identifierProvider.GetProfileJson(),
+            Id = identifierProvider.GetProfileJson().ToString(),
             Type = "Person",
-            Inbox = identifierProvider.GetPathJson("inbox"),
-            Outbox = identifierProvider.GetPathJson("outbox"),
-            Followers = identifierProvider.GetPathJson("followers"),
-            Following = identifierProvider.GetPathJson("following"),
+            Inbox = identifierProvider.GetPathJson("inbox").ToString(),
+            Outbox = identifierProvider.GetPathJson("outbox").ToString(),
+            Followers = identifierProvider.GetPathJson("followers").ToString(),
+            Following = identifierProvider.GetPathJson("following").ToString(),
             Name = profile.DisplayName,
             PreferredUsername = profile.Name,
             Summary = profile.Summary,
-            Url = identifierProvider.GetProfileHtml(),
-            PublicKey = new
+            Url = identifierProvider.GetProfileHtml().ToString(),
+            PublicKey = new PublicKeyActivityModel
             {
-                Id = identifierProvider.GetKeyId(),
-                Owner = identifierProvider.GetProfileJson(),
+                Id = identifierProvider.GetKeyId().ToString(),
+                Owner = identifierProvider.GetProfileJson().ToString(),
                 PublicKeyPem = profile.PublicKey,
             },
         };
@@ -61,12 +61,12 @@ public class ProfilesService(
     private ProfileWebfingerModel CreatePublicWebfingerModel(Profile profile) =>
         new()
         {
-            Aliases = [identifierProvider.GetProfileJson()],
+            Aliases = [identifierProvider.GetProfileJson().ToString()],
             Links =
             [
                 new LinkWebfingerModel()
                 {
-                    Href = identifierProvider.GetProfileJson(),
+                    Href = identifierProvider.GetProfileJson().ToString(),
                     Rel = "self",
                     Type = "application/activity+json",
                 },
