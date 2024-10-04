@@ -14,7 +14,7 @@ public class ProfilesService(
         using var context = contextFactory.CreateDbContext();
         var profile = await PublicProfileAsync(context);
 
-        return CreateApiModel(profile);
+        return CreatePublicActivityModel(profile);
     }
 
     public async Task<ProfileWebfingerModel> GetPublicProfileByResourceAsync(string resource)
@@ -22,7 +22,7 @@ public class ProfilesService(
         using var context = contextFactory.CreateDbContext();
         var profile = await PublicProfileAsync(context);
         var name = profile.Name;
-        var host = profile.Uri!.Host;
+        var host = identifierProvider.GetBase().Host;
 
         if (
             !(
@@ -34,44 +34,44 @@ public class ProfilesService(
             throw new NotFoundException();
         }
 
-        return CreateWebfingerModel(profile);
+        return CreatePublicWebfingerModel(profile);
     }
 
-    private static ProfileActivityModel CreateApiModel(Profile profile) =>
+    private ProfileActivityModel CreatePublicActivityModel(Profile profile) =>
         new()
         {
-            Id = profile.Uri,
+            Id = identifierProvider.GetProfileJson(),
             Type = "Person",
-            Inbox = new UriBuilder(profile.Uri!) { Path = "/inbox" }.Uri,
-            Outbox = new UriBuilder(profile.Uri!) { Path = "/outbox" }.Uri,
-            Followers = new UriBuilder(profile.Uri!) { Path = "/followers" }.Uri,
-            Following = new UriBuilder(profile.Uri!) { Path = "/following" }.Uri,
+            Inbox = identifierProvider.GetPathJson("inbox"),
+            Outbox = identifierProvider.GetPathJson("outbox"),
+            Followers = identifierProvider.GetPathJson("followers"),
+            Following = identifierProvider.GetPathJson("following"),
             Name = profile.DisplayName,
             PreferredUsername = profile.Name,
             Summary = profile.Summary,
-            Url = profile.Url,
+            Url = identifierProvider.GetProfileHtml(),
             PublicKey = new
             {
-                Id = profile.PublicKeyId,
-                Owner = profile.Uri,
+                Id = identifierProvider.GetKeyId(),
+                Owner = identifierProvider.GetProfileJson(),
                 PublicKeyPem = profile.PublicKey,
             },
         };
 
-    private static ProfileWebfingerModel CreateWebfingerModel(Profile profile) =>
+    private ProfileWebfingerModel CreatePublicWebfingerModel(Profile profile) =>
         new()
         {
-            Aliases = [profile.Uri!],
+            Aliases = [identifierProvider.GetProfileJson()],
             Links =
             [
                 new LinkWebfingerModel()
                 {
-                    Href = profile.Uri!,
+                    Href = identifierProvider.GetProfileJson(),
                     Rel = "self",
                     Type = "application/activity+json",
                 },
             ],
-            Subject = $"acct:{profile.Name}@{profile.Uri!.Host}",
+            Subject = $"acct:{profile.Name}@{identifierProvider.GetBase().Host}",
         };
 
     private async Task<Profile> PublicProfileAsync(Context context)
