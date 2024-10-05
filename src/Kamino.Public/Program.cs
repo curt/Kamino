@@ -41,7 +41,10 @@ builder.Services.AddDbContextFactory<NpgsqlContext, NpgsqlContextFactory>(option
             npgsqlOptionsBuilder.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
         }
     );
+
+    optionsBuilder.EnableSensitiveDataLogging(builder.Environment.IsDevelopment());
 });
+
 builder
     .Services.AddAuthentication(BasicDefaults.AuthenticationScheme)
     .AddBasic<BasicUserValidationService>(options =>
@@ -50,9 +53,16 @@ builder
     });
 
 // Add services to the container.
-builder.Services.AddHttpContextAccessor();
-builder.Services.AddHttpClient();
-builder.Services.AddTransient<IInboxService, InboxService>();
+builder
+    .Services.AddHttpContextAccessor()
+    .AddHttpClient()
+    .AddSingleton<IdentifierProvider>()
+    .AddTransient<LocalKeyProvider>()
+    .AddTransient<SignedHttpPostService>()
+    .AddTransient<InboxService>()
+    .AddTransient<PostsService>()
+    .AddTransient<PostsApiService>()
+    .AddTransient<ProfilesService>();
 
 builder.Services.Configure<FluidMvcViewOptions>(options =>
 {

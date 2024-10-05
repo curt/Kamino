@@ -21,57 +21,49 @@ public abstract class Context(DbContextOptions options)
         base.OnModelCreating(modelBuilder);
 
         // Build base models
-        modelBuilder.Entity<Profile>().IsBasicEntity();
-        modelBuilder.Entity<Post>().IsBasicEntity();
-        modelBuilder.Entity<Place>().IsBasicEntity();
-        modelBuilder.Entity<Tag>().IsIdentifiableEntity();
         modelBuilder.Entity<Follow>().IsIdentifiableEntity();
         modelBuilder.Entity<Like>().IsIdentifiableEntity();
         modelBuilder.Entity<Ping>().IsIdentifiableEntity();
         modelBuilder.Entity<Pong>().IsIdentifiableEntity();
+        modelBuilder.Entity<Profile>().IsBasicEntity();
+        modelBuilder.Entity<Post>().IsBasicEntity();
+        modelBuilder.Entity<Place>().IsBasicEntity();
 
         // Build required columns
         modelBuilder.Entity<Follow>(entityBuilder =>
         {
-            entityBuilder.Property(p => p.ActivityUri).IsRequired();
             entityBuilder.Property(p => p.ActorUri).IsRequired();
             entityBuilder.Property(p => p.ObjectUri).IsRequired();
         });
         modelBuilder.Entity<Like>(entityBuilder =>
         {
-            entityBuilder.Property(p => p.ActivityUri).IsRequired();
             entityBuilder.Property(p => p.ActorUri).IsRequired();
             entityBuilder.Property(p => p.ObjectUri).IsRequired();
         });
         modelBuilder.Entity<Ping>(entityBuilder =>
         {
-            entityBuilder.Property(p => p.ActivityUri).IsRequired();
             entityBuilder.Property(p => p.ActorUri).IsRequired();
             entityBuilder.Property(p => p.ToUri).IsRequired();
         });
-        modelBuilder.Entity<Pong>(entityBuilder =>
+        modelBuilder.Entity<Tag>(entityBuilder =>
         {
-            entityBuilder.Property(p => p.ActivityUri).IsRequired();
+            entityBuilder.Property(p => p.NormalizedTitle).IsRequired();
+        });
+
+        // Build primary keys
+        modelBuilder.Entity<Tag>(entityBuilder =>
+        {
+            entityBuilder.HasKey(p => p.NormalizedTitle);
         });
 
         // Build alternate keys
         modelBuilder.Entity<Follow>(entityBuilder =>
         {
             entityBuilder.HasAlternateKey(p => new { p.ActorUri, p.ObjectUri });
-            entityBuilder.HasAlternateKey(p => p.ActivityUri);
         });
         modelBuilder.Entity<Like>(entityBuilder =>
         {
             entityBuilder.HasAlternateKey(p => new { p.ActorUri, p.ObjectUri });
-            entityBuilder.HasAlternateKey(p => p.ActivityUri);
-        });
-        modelBuilder.Entity<Ping>(entityBuilder =>
-        {
-            entityBuilder.HasAlternateKey(p => p.ActivityUri);
-        });
-        modelBuilder.Entity<Pong>(entityBuilder =>
-        {
-            entityBuilder.HasAlternateKey(p => p.ActivityUri);
         });
 
         // Build one-to-many relationships

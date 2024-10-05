@@ -1,88 +1,47 @@
-using Kamino.Shared.Entities;
-using Kamino.Shared.Models;
-using Kamino.Shared.Repo;
 using Kamino.Shared.Services;
-using Medo;
+using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Kamino.Public.Controllers;
 
-[Route("p")]
+[Route("posts")]
 [ResponseCache(Duration = 30, Location = ResponseCacheLocation.Any, NoStore = false)]
-public class PostsController(
-    ILogger<PostsController> logger,
-    IDbContextFactory<NpgsqlContext> contextFactory
-) : ContextualController
+public class PostsController(PostsService postsService) : ContextualController
 {
-    public async Task<IActionResult> Index()
+    [HttpGet("index.html")]
+    public async Task<IActionResult> IndexHtml()
     {
-        logger.LogDebug("Current endpoint: '{url}'", Request.GetEndpoint().ToString());
+        var postViewModels = await postsService.GetPostViewModelsAsync();
 
-        return await Contextualize(() => IndexHtml(), () => IndexJson());
+        return View("index.html", postViewModels);
     }
 
-    [Route("{id:regex(^[[1-9A-Za-z]]{{22}}$)}")]
-    public async Task<IActionResult> Get(string id)
+    [HttpGet("index.json")]
+    public async Task<IActionResult> IndexJson()
     {
-        var guid = Uuid7.FromId22String(id).ToGuid();
+        var postActicityModels = await postsService.GetPostActivityModelsAsync();
 
-        logger.LogDebug("Current endpoint: '{url}'", Request.GetEndpoint().ToString());
-
-        return await Contextualize(() => GetHtml(guid), () => GetJson(guid));
+        // TODO: Need to return ordered collection, not array.
+        return Json(postActicityModels.Select(m => Contextify(m)));
     }
 
-    private async Task<IActionResult> IndexHtml()
+    [Route("{id:regex(^[[1-9A-Za-z]]{{22}}$)}.html")]
+    public async Task<IActionResult> GetHtml(string id)
     {
-        var factory = new PostViewModelFactory(Request.GetEndpoint());
-        var model = await IndexModel(factory);
+        var postViewModel = await postsService.GetPostViewModelByUriAsync(
+            new Uri(Request.GetEncodedUrl())
+        );
 
-        return View("index.html", model);
+        return View("get.html", postViewModel);
     }
 
-    private async Task<IActionResult> IndexJson()
+    [Route("{id:regex(^[[1-9A-Za-z]]{{22}}$)}.json")]
+    public async Task<IActionResult> GetJson(string id)
     {
-        var factory = new PostActivityModelFactory(Request.GetEndpoint());
-        var model = await IndexModel(factory);
+        var postActivityModel = await postsService.GetPostActivityModelByUriAsync(
+            new Uri(Request.GetEncodedUrl())
+        );
 
-        return Json(model.Select(m => Contextify(m)));
-    }
-
-    private async Task<IEnumerable<TModel>> IndexModel<TModel>(
-        ModelFactoryBase<Post, TModel> factory
-    )
-    {
-        using var context = contextFactory.CreateDbContext();
-
-        var postsService = new PostsService(context);
-        var model = await postsService.GetPublicPostsAsync(factory);
-
-        return model;
-    }
-
-    private async Task<IActionResult> GetHtml(Guid id)
-    {
-        var factory = new PostViewModelFactory(Request.GetEndpoint());
-        var model = await GetModel(id, factory);
-
-        return View("get.html", model);
-    }
-
-    private async Task<IActionResult> GetJson(Guid id)
-    {
-        var factory = new PostActivityModelFactory(Request.GetEndpoint());
-        var model = await GetModel(id, factory);
-
-        return Json(Contextify(model));
-    }
-
-    private async Task<TModel> GetModel<TModel>(Guid id, ModelFactoryBase<Post, TModel> factory)
-    {
-        using var context = contextFactory.CreateDbContext();
-
-        var postsService = new PostsService(context);
-        var model = await postsService.GetSinglePublicPostByIdAsync(id, factory);
-
-        return model;
+        return Json(Contextify(postActivityModel));
     }
 }

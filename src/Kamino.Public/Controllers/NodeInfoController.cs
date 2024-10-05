@@ -2,8 +2,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Kamino.Public.Controllers;
 
+[ApiController]
 [Route("")]
-[ResponseCache(Duration = 30, Location = ResponseCacheLocation.Any, NoStore = false)]
+[ResponseCache(Duration = 30)]
 public class NodeInfoController : Controller
 {
     [HttpGet(".well-known/nodeinfo")]

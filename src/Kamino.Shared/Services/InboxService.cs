@@ -1,8 +1,6 @@
 using System.Linq.Expressions;
-using System.Text.Json;
 using System.Text.Json.Nodes;
 using FluentValidation.Results;
-using Kamino.Shared.Entities;
 using Kamino.Shared.Models;
 using Kamino.Shared.Repo;
 using Kamino.Shared.Validators;
@@ -20,8 +18,10 @@ public class InboxService(
     IConfiguration configuration,
     ILogger<InboxService> logger,
     IHttpContextAccessor accessor,
-    IHttpClientFactory httpClientFactory
-) : IInboxService
+    IHttpClientFactory httpClientFactory,
+    IdentifierProvider identifierProvider,
+    SignedHttpPostService signedHttpPostService
+)
 {
     public async Task ReceiveAsync(JsonObject activity)
     {
@@ -112,7 +112,7 @@ public class InboxService(
         {
             var like = new Like
             {
-                ActivityUri = activityUri,
+                Uri = activityUri,
                 ActorUri = actorUri,
                 ObjectUri = objectUri,
             };
@@ -148,7 +148,7 @@ public class InboxService(
         {
             var follow = new Follow
             {
-                ActivityUri = activityUri,
+                Uri = activityUri,
                 AcceptUri = acceptUri,
                 ActorUri = actorUri,
                 ObjectUri = objectUri,
@@ -165,12 +165,7 @@ public class InboxService(
             }
 
             var response = new FollowAcceptOutboundModel(follow);
-            var http = new SignedHttpPostService(
-                contextFactory,
-                httpClientFactory,
-                accessor.HttpContext!.Request.GetEndpoint()
-            );
-            await http.PostAsync(actorInbox, response);
+            await signedHttpPostService.PostAsync(actorInbox, response);
         }
         else
         {
@@ -191,17 +186,17 @@ public class InboxService(
 
         using var context = contextFactory.CreateDbContext();
 
-        var match = await context.Pings.Where(e => e.ActivityUri == activityUri).AnyAsync();
+        var match = await context.Pings.Where(e => e.Uri == activityUri).AnyAsync();
 
         if (!match)
         {
             var ping = new Ping
             {
-                ActivityUri = activityUri,
+                Uri = activityUri,
                 ActorUri = actorUri,
                 ToUri = toUri,
             };
-            var pong = new Pong { ActivityUri = GenerateLocalIdentifier("pong"), Ping = ping };
+            var pong = new Pong { Uri = GenerateLocalIdentifier("pong"), Ping = ping };
             context.Add(pong);
 
             if (await context.SaveChangesAsync() > 0)
@@ -210,12 +205,7 @@ public class InboxService(
             }
 
             var response = new PongOutboundModel(pong);
-            var http = new SignedHttpPostService(
-                contextFactory,
-                httpClientFactory,
-                accessor.HttpContext!.Request.GetEndpoint()
-            );
-            await http.PostAsync(actorInbox, response);
+            await signedHttpPostService.PostAsync(actorInbox, response);
         }
         else
         {
@@ -238,11 +228,11 @@ public class InboxService(
             undone =
                 undone
                 || await UndoLikeAsync(
-                    f => f.ActorUri == actorUri && f.ActivityUri == actObjectUri,
+                    f => f.ActorUri == actorUri && f.Uri == actObjectUri,
                     $"activity '{actObjectUri}'"
                 )
                 || await UndoFollowAsync(
-                    f => f.ActorUri == actorUri && f.ActivityUri == actObjectUri,
+                    f => f.ActorUri == actorUri && f.Uri == actObjectUri,
                     $"activity '{actObjectUri}'"
                 );
         }
@@ -390,7 +380,7 @@ public class InboxService(
         }
     }
 
-    private static Uri? NormalizeIdentifier(JsonObject obj, string property, string? path = null)
+    private Uri? NormalizeIdentifier(JsonObject obj, string property, string? path = null)
     {
         string? str = null;
         var node = obj[property];
@@ -413,10 +403,10 @@ public class InboxService(
         return str != null ? new Uri(str) : null;
     }
 
-    private static Uri GenerateLocalIdentifier(string context)
+    private Uri GenerateLocalIdentifier(string context)
     {
         context = context.Trim('/');
-        var authority = Constants.InternalHost;
+        var authority = identifierProvider.GetBase().Host;
         var date = DateTime.UtcNow.Year;
         var id = Uuid7.NewUuid7().ToId22String();
 

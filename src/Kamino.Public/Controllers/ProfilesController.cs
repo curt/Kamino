@@ -1,42 +1,30 @@
-using Kamino.Shared.Entities;
 using Kamino.Shared.Models;
-using Kamino.Shared.Repo;
 using Kamino.Shared.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Kamino.Public.Controllers;
 
 [Route("")]
-[ResponseCache(Duration = 30, Location = ResponseCacheLocation.Any, NoStore = false)]
-public class ProfilesController(IDbContextFactory<NpgsqlContext> contextFactory)
-    : ContextualController
+[ResponseCache(Duration = 30)]
+public class ProfilesController(ProfilesService profilesService) : ContextualController
 {
-    public async Task<IActionResult> Index()
+    [HttpGet("")]
+    public IActionResult IndexRedirect()
     {
-        return await Contextualize(() => IndexHtml(), () => IndexJson());
+        return RedirectPermanent(Url.Action(nameof(IndexHtml))!);
     }
 
-    private async Task<IActionResult> IndexHtml()
+    [HttpGet("index.html")]
+    public async Task<IActionResult> IndexHtml()
     {
         return await Task.FromResult(View("index.html"));
     }
 
-    private async Task<IActionResult> IndexJson()
+    [HttpGet("index.json")]
+    public async Task<IActionResult> IndexJson()
     {
-        var factory = new ProfileActivityModelFactory(Request.GetEndpoint());
-        var model = await IndexModel(factory);
-
+        var model = await profilesService.GetPublicProfileAsync();
+        Response.ContentType = "application/activity+json; charset=utf-8";
         return Json(Contextify(model));
-    }
-
-    private async Task<TModel> IndexModel<TModel>(ModelFactoryBase<Profile, TModel> factory)
-    {
-        using var context = contextFactory.CreateDbContext();
-
-        var service = new ProfilesService(context);
-        var model = await service.GetPublicProfileAsync(factory);
-
-        return model;
     }
 }

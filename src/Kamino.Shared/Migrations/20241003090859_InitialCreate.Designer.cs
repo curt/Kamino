@@ -14,7 +14,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Kamino.Shared.Migrations
 {
     [DbContext(typeof(NpgsqlContext))]
-    [Migration("20241002012838_InitialCreate")]
+    [Migration("20241003090859_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -97,15 +97,10 @@ namespace Kamino.Shared.Migrations
 
             modelBuilder.Entity("Kamino.Shared.Entities.Follow", b =>
                 {
-                    b.Property<Guid?>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("AcceptUri")
+                    b.Property<string>("Uri")
                         .HasColumnType("text");
 
-                    b.Property<string>("ActivityUri")
-                        .IsRequired()
+                    b.Property<string>("AcceptUri")
                         .HasColumnType("text");
 
                     b.Property<string>("ActorUri")
@@ -120,9 +115,7 @@ namespace Kamino.Shared.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.HasKey("Id");
-
-                    b.HasAlternateKey("ActivityUri");
+                    b.HasKey("Uri");
 
                     b.HasAlternateKey("ActorUri", "ObjectUri");
 
@@ -131,12 +124,7 @@ namespace Kamino.Shared.Migrations
 
             modelBuilder.Entity("Kamino.Shared.Entities.Like", b =>
                 {
-                    b.Property<Guid?>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("ActivityUri")
-                        .IsRequired()
+                    b.Property<string>("Uri")
                         .HasColumnType("text");
 
                     b.Property<string>("ActorUri")
@@ -151,9 +139,7 @@ namespace Kamino.Shared.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.HasKey("Id");
-
-                    b.HasAlternateKey("ActivityUri");
+                    b.HasKey("Uri");
 
                     b.HasAlternateKey("ActorUri", "ObjectUri");
 
@@ -162,12 +148,7 @@ namespace Kamino.Shared.Migrations
 
             modelBuilder.Entity("Kamino.Shared.Entities.Ping", b =>
                 {
-                    b.Property<Guid?>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("ActivityUri")
-                        .IsRequired()
+                    b.Property<string>("Uri")
                         .HasColumnType("text");
 
                     b.Property<string>("ActorUri")
@@ -182,21 +163,19 @@ namespace Kamino.Shared.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.HasKey("Id");
-
-                    b.HasAlternateKey("ActivityUri");
+                    b.HasKey("Uri");
 
                     b.ToTable("Pings");
                 });
 
             modelBuilder.Entity("Kamino.Shared.Entities.Place", b =>
                 {
-                    b.Property<Guid?>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                    b.Property<string>("Uri")
+                        .HasColumnType("text");
 
-                    b.Property<Guid>("AuthorId")
-                        .HasColumnType("uuid");
+                    b.Property<string>("AuthorUri")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<DateTime?>("CreatedAt")
                         .IsRequired()
@@ -226,58 +205,45 @@ namespace Kamino.Shared.Migrations
                     b.Property<DateTime?>("TombstonedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Uri")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("Url")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.HasKey("Id");
+                    b.HasKey("Uri");
 
-                    b.HasIndex("AuthorId");
-
-                    b.HasIndex("Uri")
-                        .IsUnique();
+                    b.HasIndex("AuthorUri");
 
                     b.ToTable("Places");
                 });
 
             modelBuilder.Entity("Kamino.Shared.Entities.Pong", b =>
                 {
-                    b.Property<Guid?>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("ActivityUri")
-                        .IsRequired()
+                    b.Property<string>("Uri")
                         .HasColumnType("text");
 
                     b.Property<DateTime?>("CreatedAt")
                         .IsRequired()
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid>("PingId")
-                        .HasColumnType("uuid");
+                    b.Property<string>("PingUri")
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                    b.HasKey("Id");
+                    b.HasKey("Uri");
 
-                    b.HasAlternateKey("ActivityUri");
-
-                    b.HasIndex("PingId");
+                    b.HasIndex("PingUri");
 
                     b.ToTable("Pongs");
                 });
 
             modelBuilder.Entity("Kamino.Shared.Entities.Post", b =>
                 {
-                    b.Property<Guid?>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                    b.Property<string>("Uri")
+                        .HasColumnType("text");
 
-                    b.Property<Guid>("AuthorId")
-                        .HasColumnType("uuid");
+                    b.Property<string>("AuthorUri")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<DateTime?>("CachedAt")
                         .HasColumnType("timestamp with time zone");
@@ -328,29 +294,21 @@ namespace Kamino.Shared.Migrations
                     b.Property<DateTime?>("TombstonedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Uri")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("Url")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.HasKey("Id");
+                    b.HasKey("Uri");
 
-                    b.HasIndex("AuthorId");
-
-                    b.HasIndex("Uri")
-                        .IsUnique();
+                    b.HasIndex("AuthorUri");
 
                     b.ToTable("Posts");
                 });
 
             modelBuilder.Entity("Kamino.Shared.Entities.Profile", b =>
                 {
-                    b.Property<Guid?>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                    b.Property<string>("Uri")
+                        .HasColumnType("text");
 
                     b.Property<DateTime?>("CachedAt")
                         .HasColumnType("timestamp with time zone");
@@ -386,34 +344,22 @@ namespace Kamino.Shared.Migrations
                     b.Property<DateTime?>("TombstonedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Uri")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("Url")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.HasKey("Id");
-
-                    b.HasIndex("Uri")
-                        .IsUnique();
+                    b.HasKey("Uri");
 
                     b.ToTable("Profiles");
                 });
 
             modelBuilder.Entity("Kamino.Shared.Entities.Tag", b =>
                 {
-                    b.Property<Guid?>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime?>("CreatedAt")
-                        .IsRequired()
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<string>("NormalizedTitle")
                         .HasColumnType("text");
+
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Slug")
                         .HasColumnType("text");
@@ -430,7 +376,7 @@ namespace Kamino.Shared.Migrations
                     b.Property<string>("Title")
                         .HasColumnType("text");
 
-                    b.HasKey("Id");
+                    b.HasKey("NormalizedTitle");
 
                     b.ToTable("Tags");
                 });
@@ -569,45 +515,45 @@ namespace Kamino.Shared.Migrations
 
             modelBuilder.Entity("PlacesTags", b =>
                 {
-                    b.Property<Guid>("PlacesId")
-                        .HasColumnType("uuid");
+                    b.Property<string>("PlacesUri")
+                        .HasColumnType("text");
 
-                    b.Property<Guid>("TagsId")
-                        .HasColumnType("uuid");
+                    b.Property<string>("TagsNormalizedTitle")
+                        .HasColumnType("text");
 
-                    b.HasKey("PlacesId", "TagsId");
+                    b.HasKey("PlacesUri", "TagsNormalizedTitle");
 
-                    b.HasIndex("TagsId");
+                    b.HasIndex("TagsNormalizedTitle");
 
                     b.ToTable("PlacesTags");
                 });
 
             modelBuilder.Entity("PostsPlaces", b =>
                 {
-                    b.Property<Guid>("PlacesId")
-                        .HasColumnType("uuid");
+                    b.Property<string>("PlacesUri")
+                        .HasColumnType("text");
 
-                    b.Property<Guid>("PostsId")
-                        .HasColumnType("uuid");
+                    b.Property<string>("PostsUri")
+                        .HasColumnType("text");
 
-                    b.HasKey("PlacesId", "PostsId");
+                    b.HasKey("PlacesUri", "PostsUri");
 
-                    b.HasIndex("PostsId");
+                    b.HasIndex("PostsUri");
 
                     b.ToTable("PostsPlaces");
                 });
 
             modelBuilder.Entity("PostsTags", b =>
                 {
-                    b.Property<Guid>("PostsId")
-                        .HasColumnType("uuid");
+                    b.Property<string>("PostsUri")
+                        .HasColumnType("text");
 
-                    b.Property<Guid>("TagsId")
-                        .HasColumnType("uuid");
+                    b.Property<string>("TagsNormalizedTitle")
+                        .HasColumnType("text");
 
-                    b.HasKey("PostsId", "TagsId");
+                    b.HasKey("PostsUri", "TagsNormalizedTitle");
 
-                    b.HasIndex("TagsId");
+                    b.HasIndex("TagsNormalizedTitle");
 
                     b.ToTable("PostsTags");
                 });
@@ -616,7 +562,7 @@ namespace Kamino.Shared.Migrations
                 {
                     b.HasOne("Kamino.Shared.Entities.Profile", "Author")
                         .WithMany("PlacesAuthored")
-                        .HasForeignKey("AuthorId")
+                        .HasForeignKey("AuthorUri")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -627,7 +573,7 @@ namespace Kamino.Shared.Migrations
                 {
                     b.HasOne("Kamino.Shared.Entities.Ping", "Ping")
                         .WithMany("Pongs")
-                        .HasForeignKey("PingId")
+                        .HasForeignKey("PingUri")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -638,7 +584,7 @@ namespace Kamino.Shared.Migrations
                 {
                     b.HasOne("Kamino.Shared.Entities.Profile", "Author")
                         .WithMany("PostsAuthored")
-                        .HasForeignKey("AuthorId")
+                        .HasForeignKey("AuthorUri")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -700,13 +646,13 @@ namespace Kamino.Shared.Migrations
                 {
                     b.HasOne("Kamino.Shared.Entities.Place", null)
                         .WithMany()
-                        .HasForeignKey("PlacesId")
+                        .HasForeignKey("PlacesUri")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Kamino.Shared.Entities.Tag", null)
                         .WithMany()
-                        .HasForeignKey("TagsId")
+                        .HasForeignKey("TagsNormalizedTitle")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -715,13 +661,13 @@ namespace Kamino.Shared.Migrations
                 {
                     b.HasOne("Kamino.Shared.Entities.Place", null)
                         .WithMany()
-                        .HasForeignKey("PlacesId")
+                        .HasForeignKey("PlacesUri")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Kamino.Shared.Entities.Post", null)
                         .WithMany()
-                        .HasForeignKey("PostsId")
+                        .HasForeignKey("PostsUri")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -730,13 +676,13 @@ namespace Kamino.Shared.Migrations
                 {
                     b.HasOne("Kamino.Shared.Entities.Post", null)
                         .WithMany()
-                        .HasForeignKey("PostsId")
+                        .HasForeignKey("PostsUri")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Kamino.Shared.Entities.Tag", null)
                         .WithMany()
-                        .HasForeignKey("TagsId")
+                        .HasForeignKey("TagsNormalizedTitle")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

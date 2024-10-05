@@ -1,22 +1,16 @@
-using Kamino.Shared.Models;
-using Kamino.Shared.Repo;
 using Kamino.Shared.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Kamino.Public.Controllers;
 
+[ApiController]
 [Route(".well-known/webfinger")]
-[ResponseCache(Duration = 30, Location = ResponseCacheLocation.Any, NoStore = false)]
-public class WebfingerController(IDbContextFactory<NpgsqlContext> contextFactory) : Controller
+[ResponseCache(Duration = 30)]
+public class WebfingerController(ProfilesService profilesService) : Controller
 {
     public async Task<IActionResult> Index([FromQuery] string resource)
     {
-        using var context = contextFactory.CreateDbContext();
-
-        var factory = new ProfileWebfingerModelFactory(Request.GetEndpoint());
-        var service = new ProfilesService(context);
-        var model = await service.GetPublicProfileByResourceAsync(resource, factory);
+        var model = await profilesService.GetPublicProfileByResourceAsync(resource);
 
         return Json(model);
     }

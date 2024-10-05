@@ -5,10 +5,10 @@ using Microsoft.AspNetCore.Mvc;
 namespace Kamino.Public.Controllers;
 
 [ApiController]
-[Route("inbox")]
-public class InboxController(IInboxService inboxService) : ControllerBase
+[Route("")]
+public class InboxController(InboxService inboxService) : ControllerBase
 {
-    [HttpPost]
+    [HttpPost("inbox.json")]
     public async Task<IActionResult> Post([FromBody] JsonObject model)
     {
         await inboxService.ReceiveAsync(model);

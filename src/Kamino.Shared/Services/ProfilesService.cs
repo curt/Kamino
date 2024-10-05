@@ -1,29 +1,28 @@
-using Kamino.Shared.Entities;
 using Kamino.Shared.Models;
 using Kamino.Shared.Repo;
 using Microsoft.EntityFrameworkCore;
 
 namespace Kamino.Shared.Services;
 
-public class ProfilesService(Context context)
+public class ProfilesService(
+    IDbContextFactory<NpgsqlContext> contextFactory,
+    IdentifierProvider identifierProvider
+)
 {
-    public async Task<TModel> GetPublicProfileAsync<TModel>(
-        ModelFactoryBase<Profile, TModel> factory
-    )
+    public async Task<ProfileActivityModel> GetPublicProfileAsync()
     {
-        var profile = await PublicProfileAsync();
+        using var context = contextFactory.CreateDbContext();
+        var profile = await PublicProfileAsync(context);
 
-        return factory.Create(profile);
+        return CreatePublicActivityModel(profile);
     }
 
-    public async Task<TModel> GetPublicProfileByResourceAsync<TModel>(
-        string resource,
-        ModelFactoryBase<Profile, TModel> factory
-    )
+    public async Task<ProfileWebfingerModel> GetPublicProfileByResourceAsync(string resource)
     {
-        var profile = await PublicProfileAsync();
+        using var context = contextFactory.CreateDbContext();
+        var profile = await PublicProfileAsync(context);
         var name = profile.Name;
-        var host = factory.UriInternalizer.ExternalHost;
+        var host = identifierProvider.GetBase().Host;
 
         if (
             !(
@@ -35,12 +34,50 @@ public class ProfilesService(Context context)
             throw new NotFoundException();
         }
 
-        return factory.Create(profile);
+        return CreatePublicWebfingerModel(profile);
     }
 
-    private async Task<Profile> PublicProfileAsync()
+    private ProfileActivityModel CreatePublicActivityModel(Profile profile) =>
+        new()
+        {
+            Id = identifierProvider.GetProfileJson().ToString(),
+            Type = "Person",
+            Inbox = identifierProvider.GetPathJson("inbox").ToString(),
+            Outbox = identifierProvider.GetPathJson("outbox").ToString(),
+            Followers = identifierProvider.GetPathJson("followers").ToString(),
+            Following = identifierProvider.GetPathJson("following").ToString(),
+            Name = profile.DisplayName,
+            PreferredUsername = profile.Name,
+            Summary = profile.Summary,
+            Url = identifierProvider.GetProfileHtml().ToString(),
+            PublicKey = new PublicKeyActivityModel
+            {
+                Id = identifierProvider.GetKeyId().ToString(),
+                Owner = identifierProvider.GetProfileJson().ToString(),
+                PublicKeyPem = profile.PublicKey,
+            },
+        };
+
+    private ProfileWebfingerModel CreatePublicWebfingerModel(Profile profile) =>
+        new()
+        {
+            Aliases = [identifierProvider.GetProfileJson().ToString()],
+            Links =
+            [
+                new LinkWebfingerModel()
+                {
+                    Href = identifierProvider.GetProfileJson().ToString(),
+                    Rel = "self",
+                    Type = "application/activity+json",
+                },
+            ],
+            Subject = $"acct:{profile.Name}@{identifierProvider.GetBase().Host}",
+        };
+
+    private async Task<Profile> PublicProfileAsync(Context context)
     {
-        return await context.Profiles.WhereLocal().SingleOrDefaultAsync()
-            ?? throw new NotFoundException();
+        return await context
+                .Profiles.WhereUriMatch(identifierProvider.GetProfileJson())
+                .SingleOrDefaultAsync() ?? throw new NotFoundException();
     }
 }

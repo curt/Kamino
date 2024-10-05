@@ -1,15 +1,8 @@
-using Kamino.Shared.Entities;
-
 namespace Kamino.Shared.Repo;
 
 public static class PostsQueryExtensions
 {
-    public static IQueryable<Post> WhereIdMatch(this IQueryable<Post> posts, Guid id)
-    {
-        return posts.Where(post => post.Id == id);
-    }
-
-    public static IQueryable<Post> WhereUriMatch(this IQueryable<Post> posts, string uri)
+    public static IQueryable<Post> WhereUriMatch(this IQueryable<Post> posts, Uri uri)
     {
         return posts.Where(post => post.Uri == uri);
     }
