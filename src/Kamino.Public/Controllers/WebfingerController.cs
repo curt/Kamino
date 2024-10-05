@@ -3,8 +3,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Kamino.Public.Controllers;
 
+[ApiController]
 [Route(".well-known/webfinger")]
-[ResponseCache(Duration = 30, Location = ResponseCacheLocation.Any, NoStore = false)]
+[ResponseCache(Duration = 30)]
 public class WebfingerController(ProfilesService profilesService) : Controller
 {
     public async Task<IActionResult> Index([FromQuery] string resource)
