@@ -1,0 +1,4 @@
+#!/bin/ash
+
+echo "-- Starting!"
+./Kamino.Admin

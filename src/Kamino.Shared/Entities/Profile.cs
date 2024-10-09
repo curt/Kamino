@@ -14,6 +14,8 @@ public class Profile : BasicEntity
 
     public string? Inbox { get; set; }
 
+    public Uri? Icon { get; set; }
+
     public string? PrivateKey { get; set; }
 
     public DateTime? CachedAt { get; set; }
@@ -21,4 +23,8 @@ public class Profile : BasicEntity
     public virtual ICollection<Post> PostsAuthored { get; } = [];
 
     public virtual ICollection<Place> PlacesAuthored { get; } = [];
+
+    public virtual ICollection<Ping> PingsActor { get; } = [];
+
+    public virtual ICollection<Ping> PingsTo { get; } = [];
 }

@@ -77,6 +77,16 @@ public abstract class Context(DbContextOptions options)
             .HasOne(p => p.Author)
             .WithMany(p => p.PlacesAuthored)
             .IsRequired();
+        modelBuilder
+            .Entity<Ping>()
+            .HasOne(p => p.Actor)
+            .WithMany(p => p.PingsActor)
+            .HasForeignKey(p => p.ActorUri);
+        modelBuilder
+            .Entity<Ping>()
+            .HasOne(p => p.To)
+            .WithMany(p => p.PingsTo)
+            .HasForeignKey(p => p.ToUri);
         modelBuilder.Entity<Pong>().HasOne(p => p.Ping).WithMany(p => p.Pongs).IsRequired();
 
         // Build many-to-many relationships

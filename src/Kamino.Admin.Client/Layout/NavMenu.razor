@@ -9,7 +9,15 @@
     <MudNavLink Href="auth" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Lock">Auth Required</MudNavLink>
     <AuthorizeView>
         <Authorized>
-            <MudNavLink Href="Account/Manage" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Person">@context.User.Identity?.Name</MudNavLink>
+            <MudNavLink Href="#posts" Icon="@Icons.Material.Filled.Article">Posts</MudNavLink>
+            <MudNavLink Href="#places" Icon="@Icons.Material.Filled.Place">Places</MudNavLink>
+            <MudNavLink Href="#images" Icon="@Icons.Material.Filled.Image">Images</MudNavLink>
+            <MudNavLink Href="#tags" Icon="@Icons.Material.Filled.Tag">Tags</MudNavLink>
+            <MudNavGroup Title="Advanced" Icon="@Icons.Custom.Uncategorized.Radioactive">
+                <MudNavLink Href="pings" Icon="@Icons.Material.Filled.NetworkPing">Pings</MudNavLink>
+            </MudNavGroup>
+            <MudNavLink Href="Account/Manage" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Person">
+                @context.User.Identity?.Name</MudNavLink>
             <form action="Account/Logout" method="post">
                 <AntiforgeryToken />
                 <input type="hidden" name="ReturnUrl" value="@currentUrl" />
@@ -19,8 +27,10 @@
             </form>
         </Authorized>
         <NotAuthorized>
-            <MudNavLink Href="Account/Register" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Person">Register</MudNavLink>
-            <MudNavLink Href="Account/Login" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Password">Login</MudNavLink>
+            <MudNavLink Href="Account/Register" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Person">
+                Register</MudNavLink>
+            <MudNavLink Href="Account/Login" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Password">Login
+            </MudNavLink>
         </NotAuthorized>
     </AuthorizeView>
 </MudNavMenu>
@@ -46,5 +56,3 @@
         NavigationManager.LocationChanged -= OnLocationChanged;
     }
 }
-
-

@@ -1,0 +1,30 @@
+@page "/pings"
+@using Kamino.Admin.Client.Models
+@using Kamino.Admin.Client.Services
+@inject IPingsService pingsService
+
+<PageTitle>Pings</PageTitle>
+
+<MudDataGrid Items="@pings">
+    <Columns>
+        <PropertyColumn Property="x => x.PingCreatedAt" />
+        <PropertyColumn Property="x => x.PingUri" />
+        <PropertyColumn Property="x => x.ActorDisplayName" />
+        <PropertyColumn Property="x => x.ActorUri" />
+        <PropertyColumn Property="x => x.ActorIcon" />
+        <PropertyColumn Property="x => x.ToDisplayName" />
+        <PropertyColumn Property="x => x.ToUri" />
+        <PropertyColumn Property="x => x.ToIcon" />
+        <PropertyColumn Property="x => x.PongCreatedAt" />
+        <PropertyColumn Property="x => x.PongUri" />
+    </Columns>
+</MudDataGrid>
+
+@code {
+    private IEnumerable<PingApiModel> pings = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        pings = await pingsService.GetPingsAsync();
+    }
+}

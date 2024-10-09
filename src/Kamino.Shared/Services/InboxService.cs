@@ -69,6 +69,8 @@ public class InboxService(
             throw new BadRequestException();
         }
 
+        await UpdateProfile(actor, actorUri);
+
         switch (activity.GetString("type"))
         {
             case "Create":
@@ -90,6 +92,26 @@ public class InboxService(
                 await UndoAsync(activity, actorUri);
                 break;
         }
+    }
+
+    internal async Task UpdateProfile(JsonObject actor, Uri actorUri)
+    {
+        using var context = contextFactory.CreateDbContext();
+        var profile =
+            await context.FindAsync<Profile>(actorUri) ?? new Profile() { Uri = actorUri };
+
+        profile.Url = actor["url"]?.GetUri();
+        profile.Inbox = actor["inbox"]?.ToString();
+        profile.Name = actor["preferredUsername"]?.ToString();
+        profile.DisplayName = actor["name"]?.ToString();
+        profile.CachedAt = DateTime.UtcNow;
+
+        if (context.Entry(profile).State == EntityState.Detached)
+        {
+            context.Add(profile);
+        }
+
+        await context.SaveChangesAsync();
     }
 
     internal async Task CreateAsync(JsonObject activity, JsonObject actor)
@@ -202,10 +224,10 @@ public class InboxService(
             if (await context.SaveChangesAsync() > 0)
             {
                 logger.LogInformation("Ping added for activity '{activityUri}'.", activityUri);
-            }
 
-            var response = new PongOutboundModel(pong);
-            await signedHttpPostService.PostAsync(actorInbox, response);
+                var response = new PongOutboundModel(pong);
+                await signedHttpPostService.PostAsync(actorInbox, response);
+            }
         }
         else
         {

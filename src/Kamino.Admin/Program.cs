@@ -1,5 +1,7 @@
+using Kamino.Admin.Client.Services;
 using Kamino.Admin.Components;
 using Kamino.Admin.Components.Account;
+using Kamino.Admin.Services;
 using Kamino.Shared.Entities;
 using Kamino.Shared.Repo;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -23,7 +25,10 @@ builder.Services.AddScoped<
     PersistingServerAuthenticationStateProvider
 >();
 
-builder.Services.AddAuthorization();
+builder
+    .Services.AddAuthorizationBuilder()
+    .AddPolicy("IsProfileOwner", policy => policy.RequireClaim("Owner"));
+
 builder
     .Services.AddAuthentication(options =>
     {
@@ -53,6 +58,7 @@ builder.Services.AddDbContextFactory<NpgsqlContext, NpgsqlContextFactory>(option
         }
     );
 });
+
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder
@@ -64,6 +70,9 @@ builder
     .AddDefaultTokenProviders();
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+builder.Services.AddTransient<IPingsService, PingsServerService>();
+
+builder.Services.AddControllers();
 
 var app = builder.Build();
 
@@ -91,5 +100,7 @@ app.MapRazorComponents<App>()
 
 // Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();
+
+app.MapControllers();
 
 app.Run();
