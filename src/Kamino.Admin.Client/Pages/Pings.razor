@@ -5,18 +5,44 @@
 
 <PageTitle>Pings</PageTitle>
 
-<MudDataGrid Items="@pings">
+<MudDataGrid Items="@pings" Breakpoint="Breakpoint.Sm">
     <Columns>
-        <PropertyColumn Property="x => x.PingCreatedAt" />
-        <PropertyColumn Property="x => x.PingUri" />
-        <PropertyColumn Property="x => x.ActorDisplayName" />
-        <PropertyColumn Property="x => x.ActorUri" />
-        <PropertyColumn Property="x => x.ActorIcon" />
-        <PropertyColumn Property="x => x.ToDisplayName" />
-        <PropertyColumn Property="x => x.ToUri" />
-        <PropertyColumn Property="x => x.ToIcon" />
-        <PropertyColumn Property="x => x.PongCreatedAt" />
-        <PropertyColumn Property="x => x.PongUri" />
+        <TemplateColumn Title="Ping">
+            <CellTemplate>
+                <MudStack>
+                    <MudText Typo="Typo.body2">@context.Item.PingCreatedAt</MudText>
+                    <MudStack Row="true">
+                        <MudAvatar Size="Size.Medium">
+                            <MudImage Src="@context.Item.ActorIcon"
+                                Alt="@($"{context.Item.ActorDisplayName ?? "Actor"} icon")"></MudImage>
+                        </MudAvatar>
+                        <MudStack Justify="Justify.Center" Spacing="0">
+                            <MudText Typo="Typo.body1">@context.Item.ActorDisplayName</MudText>
+                            <MudText Typo="Typo.body2">@context.Item.ActorUri</MudText>
+                        </MudStack>
+                    </MudStack>
+                    <MudText Typo="Typo.caption">@context.Item.PingUri</MudText>
+                </MudStack>
+            </CellTemplate>
+        </TemplateColumn>
+        <TemplateColumn Title="Pong">
+            <CellTemplate>
+                <MudStack>
+                    <MudText Typo="Typo.body2">@context.Item.PongCreatedAt</MudText>
+                    <MudStack Row="true">
+                        <MudAvatar Size="Size.Medium">
+                            <MudImage Src="@context.Item.ToIcon"
+                                Alt="@($"{context.Item.ToDisplayName ?? "Actor"} icon")"></MudImage>
+                        </MudAvatar>
+                        <MudStack Justify="Justify.Center" Spacing="0">
+                            <MudText Typo="Typo.body1">@context.Item.ToDisplayName</MudText>
+                            <MudText Typo="Typo.body2">@context.Item.ToUri</MudText>
+                        </MudStack>
+                    </MudStack>
+                    <MudText Typo="Typo.caption">@context.Item.PongUri</MudText>
+                </MudStack>
+            </CellTemplate>
+        </TemplateColumn>
     </Columns>
 </MudDataGrid>
 

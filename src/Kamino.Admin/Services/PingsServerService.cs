@@ -1,3 +1,4 @@
+using Jdenticon;
 using Kamino.Admin.Client.Models;
 using Kamino.Admin.Client.Services;
 using Kamino.Shared.Repo;
@@ -37,15 +38,34 @@ public class PingsServerService(IDbContextFactory<NpgsqlContext> contextFactory)
             PongCreatedAt = p.Pongs.FirstOrDefault()?.CreatedAt,
             ActorUri = p.ActorUri?.ToString(),
             ActorDisplayName = p.ActorDisplayName,
-            ActorIcon = p.ActorIcon?.ToString(),
+            ActorIcon = GetIconUrl(p.ActorIcon, p.ActorUri, 32),
             ToUri = p.ToUri?.ToString(),
             ToDisplayName = p.ToDisplayName,
-            ToIcon = p.ToIcon?.ToString(),
+            ToIcon = GetIconUrl(p.ToIcon, p.ToUri, 32),
         });
     }
 
     public Task<PingApiModel> SendPing()
     {
         throw new NotImplementedException();
+    }
+
+    private static string GetIconUrl(Uri? icon, Uri? uri, int size)
+    {
+        if (icon != null)
+        {
+            return icon.ToString();
+        }
+
+        var value = uri?.ToString() ?? "Actor";
+        var hash = HashGenerator.ComputeHash(value, "SHA1");
+        var request = new IdenticonRequest
+        {
+            Hash = hash,
+            Size = size,
+            Format = ExportImageFormat.Png,
+        };
+
+        return $"/identicons/{request.ToString()}";
     }
 }

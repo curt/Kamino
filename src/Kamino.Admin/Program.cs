@@ -1,3 +1,4 @@
+using Jdenticon.AspNetCore;
 using Kamino.Admin.Client.Services;
 using Kamino.Admin.Components;
 using Kamino.Admin.Components.Account;
@@ -91,6 +92,7 @@ else
 
 app.UseHttpsRedirection();
 
+app.UseJdenticon();
 app.UseStaticFiles();
 app.UseAntiforgery();
 
