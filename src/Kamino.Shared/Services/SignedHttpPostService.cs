@@ -38,7 +38,7 @@ public class SignedHttpPostService(
     private HttpClient GetHttpClient(int timeout = 10)
     {
         var httpClient = httpClientFactory.CreateClient();
-        httpClient.Timeout = TimeSpan.FromSeconds(10);
+        httpClient.Timeout = TimeSpan.FromSeconds(timeout);
 
         return httpClient;
     }

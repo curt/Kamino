@@ -59,7 +59,7 @@ builder
     .AddSingleton<IdentifierProvider>()
     .AddTransient<LocalKeyProvider>()
     .AddTransient<SignedHttpPostService>()
-    .AddTransient<InboxService>()
+    .AddTransient<ActivityPubService>()
     .AddTransient<PostsService>()
     .AddTransient<PostsApiService>()
     .AddTransient<ProfilesService>();

@@ -13,10 +13,10 @@ using SevenKilo.HttpSignatures;
 
 namespace Kamino.Shared.Services;
 
-public class InboxService(
+public class ActivityPubService(
     IDbContextFactory<NpgsqlContext> contextFactory,
     IConfiguration configuration,
-    ILogger<InboxService> logger,
+    ILogger<ActivityPubService> logger,
     IHttpContextAccessor accessor,
     IHttpClientFactory httpClientFactory,
     IdentifierProvider identifierProvider,
@@ -69,35 +69,109 @@ public class InboxService(
             throw new BadRequestException();
         }
 
+        await UpdateProfile(actor, actorUri);
+
         switch (activity.GetString("type"))
         {
             case "Create":
-                await CreateAsync(activity, actor);
+                await ReceiveCreateAsync(activity, actor);
                 break;
             case "Follow":
-                await FollowAsync(activity, actor);
+                await ReceiveFollowAsync(activity, actor);
                 break;
             case "Like":
-                await LikeAsync(activity, actorUri);
+                await ReceiveLikeAsync(activity, actorUri);
                 break;
             case "Ping":
-                await PingAsync(activity, actor);
+                await ReceivePingAsync(activity, actor);
                 break;
             case "Pong":
-                await PongAsync(activity, actor);
+                await ReceivePongAsync(activity, actor);
                 break;
             case "Undo":
-                await UndoAsync(activity, actorUri);
+                await ReceiveUndoAsync(activity, actorUri);
                 break;
         }
     }
 
-    internal async Task CreateAsync(JsonObject activity, JsonObject actor)
+    public async Task<bool> SendPingAsync(Uri toUri)
+    {
+        var keyProvider = new KeyProvider(logger, httpClientFactory);
+        var keyModel = await keyProvider.GetKeyModelByKeyIdAsync(toUri.ToString());
+
+        if (keyModel == null)
+        {
+            logger.LogWarning("Key model not found for '{toUri}'.", toUri);
+
+            return false;
+        }
+
+        var to = keyProvider.Actor!;
+        var toInbox = to.GetUri("inbox")!;
+        var keyOwnerUri = keyProvider.Owner!;
+
+        if (keyOwnerUri != toUri)
+        {
+            logger.LogWarning(
+                "Mismatch between key owner and actor identifier for '{toUri}'.",
+                toUri
+            );
+
+            return false;
+        }
+
+        await UpdateProfile(to, toUri);
+
+        using var context = contextFactory.CreateDbContext();
+
+        var ping = new Ping
+        {
+            Uri = identifierProvider.GetTag("ping"),
+            ActorUri = identifierProvider.GetProfileJson(),
+            ToUri = toUri,
+        };
+        context.Add(ping);
+        var rowsModified = await context.SaveChangesAsync();
+
+        if (rowsModified == 0)
+        {
+            logger.LogWarning("Unable to add ping for '{toUri}'.", toUri);
+
+            return false;
+        }
+
+        var model = new PingOutboundModel(ping);
+        await signedHttpPostService.PostAsync(toInbox, model);
+
+        return true;
+    }
+
+    internal async Task UpdateProfile(JsonObject actor, Uri actorUri)
+    {
+        using var context = contextFactory.CreateDbContext();
+        var profile =
+            await context.FindAsync<Profile>(actorUri) ?? new Profile() { Uri = actorUri };
+
+        profile.Url = actor["url"]?.GetUri();
+        profile.Inbox = actor["inbox"]?.ToString();
+        profile.Name = actor["preferredUsername"]?.ToString();
+        profile.DisplayName = actor["name"]?.ToString();
+        profile.CachedAt = DateTime.UtcNow;
+
+        if (context.Entry(profile).State == EntityState.Detached)
+        {
+            context.Add(profile);
+        }
+
+        await context.SaveChangesAsync();
+    }
+
+    internal async Task ReceiveCreateAsync(JsonObject activity, JsonObject actor)
     {
         await Task.Run(() => { });
     }
 
-    internal async Task LikeAsync(JsonObject activity, Uri actorUri)
+    internal async Task ReceiveLikeAsync(JsonObject activity, Uri actorUri)
     {
         var activityUri = NormalizeIdentifier(activity, "id", "like");
         var objectUri = NormalizeIdentifier(activity, "object");
@@ -130,7 +204,7 @@ public class InboxService(
         }
     }
 
-    internal async Task FollowAsync(JsonObject activity, JsonObject actor)
+    internal async Task ReceiveFollowAsync(JsonObject activity, JsonObject actor)
     {
         var activityUri = NormalizeIdentifier(activity, "id", "follow");
         var actorUri = NormalizeIdentifier(activity, "actor");
@@ -177,7 +251,7 @@ public class InboxService(
         }
     }
 
-    internal async Task PingAsync(JsonObject activity, JsonObject actor)
+    internal async Task ReceivePingAsync(JsonObject activity, JsonObject actor)
     {
         var activityUri = NormalizeIdentifier(activity, "id", "ping");
         var actorUri = NormalizeIdentifier(activity, "actor");
@@ -202,10 +276,10 @@ public class InboxService(
             if (await context.SaveChangesAsync() > 0)
             {
                 logger.LogInformation("Ping added for activity '{activityUri}'.", activityUri);
-            }
 
-            var response = new PongOutboundModel(pong);
-            await signedHttpPostService.PostAsync(actorInbox, response);
+                var response = new PongOutboundModel(pong);
+                await signedHttpPostService.PostAsync(actorInbox, response);
+            }
         }
         else
         {
@@ -213,12 +287,12 @@ public class InboxService(
         }
     }
 
-    internal async Task PongAsync(JsonObject activity, JsonObject actor)
+    internal async Task ReceivePongAsync(JsonObject activity, JsonObject actor)
     {
         await Task.Run(() => { });
     }
 
-    internal async Task UndoAsync(JsonObject activity, Uri actorUri)
+    internal async Task ReceiveUndoAsync(JsonObject activity, Uri actorUri)
     {
         var undone = false;
         var actObjectUri = NormalizeIdentifier(activity, "object");

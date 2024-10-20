@@ -1,7 +1,11 @@
+using Jdenticon.AspNetCore;
+using Kamino.Admin.Client.Services;
 using Kamino.Admin.Components;
 using Kamino.Admin.Components.Account;
+using Kamino.Admin.Services;
 using Kamino.Shared.Entities;
 using Kamino.Shared.Repo;
+using Kamino.Shared.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -23,7 +27,8 @@ builder.Services.AddScoped<
     PersistingServerAuthenticationStateProvider
 >();
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorizationBuilder();
+
 builder
     .Services.AddAuthentication(options =>
     {
@@ -53,17 +58,30 @@ builder.Services.AddDbContextFactory<NpgsqlContext, NpgsqlContextFactory>(option
         }
     );
 });
+
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder
     .Services.AddIdentityCore<ApplicationUser>(options =>
         options.SignIn.RequireConfirmedAccount = true
     )
+    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<NpgsqlContext>()
     .AddSignInManager()
     .AddDefaultTokenProviders();
 
-builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+// Add services to the container.
+builder
+    .Services.AddHttpContextAccessor()
+    .AddHttpClient()
+    .AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>()
+    .AddSingleton<IdentifierProvider>()
+    .AddTransient<LocalKeyProvider>()
+    .AddTransient<SignedHttpPostService>()
+    .AddTransient<ActivityPubService>()
+    .AddTransient<IPingsService, PingsServerService>();
+
+builder.Services.AddControllers();
 
 var app = builder.Build();
 
@@ -82,6 +100,7 @@ else
 
 app.UseHttpsRedirection();
 
+app.UseJdenticon();
 app.UseStaticFiles();
 app.UseAntiforgery();
 
@@ -91,5 +110,7 @@ app.MapRazorComponents<App>()
 
 // Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();
+
+app.MapControllers();
 
 app.Run();
