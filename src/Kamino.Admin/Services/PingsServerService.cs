@@ -2,11 +2,15 @@ using Jdenticon;
 using Kamino.Admin.Client.Models;
 using Kamino.Admin.Client.Services;
 using Kamino.Shared.Repo;
+using Kamino.Shared.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace Kamino.Admin.Services;
 
-public class PingsServerService(IDbContextFactory<NpgsqlContext> contextFactory) : IPingsService
+public class PingsServerService(
+    IDbContextFactory<NpgsqlContext> contextFactory,
+    ActivityPubService activityPubService
+) : IPingsService
 {
     public async Task<IEnumerable<PingApiModel>> GetPingsAsync()
     {
@@ -45,9 +49,9 @@ public class PingsServerService(IDbContextFactory<NpgsqlContext> contextFactory)
         });
     }
 
-    public Task<PingApiModel> SendPing()
+    public async Task<bool> SendPingAsync(string toUri)
     {
-        throw new NotImplementedException();
+        return await activityPubService.SendPingAsync(new Uri(toUri));
     }
 
     private static string GetIconUrl(Uri? icon, Uri? uri, int size)
@@ -66,6 +70,6 @@ public class PingsServerService(IDbContextFactory<NpgsqlContext> contextFactory)
             Format = ExportImageFormat.Png,
         };
 
-        return $"/identicons/{request.ToString()}";
+        return $"/identicons/{request}";
     }
 }

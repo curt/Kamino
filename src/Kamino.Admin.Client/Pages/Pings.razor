@@ -2,10 +2,26 @@
 @using Kamino.Admin.Client.Models
 @using Kamino.Admin.Client.Services
 @inject IPingsService pingsService
+@inject ISnackbar Snackbar
 
 <PageTitle>Pings</PageTitle>
 
-<MudDataGrid Items="@pings" Breakpoint="Breakpoint.Sm">
+<MudCard Class="pa-4">
+    <MudForm>
+        <MudCardContent>
+            <MudTextField T="string" Label="Ping Destination URL" Required="true" @bind-Value="pingUrl"></MudTextField>
+        </MudCardContent>
+        <MudCardActions>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SendPing" Disabled="@sending">Send Ping
+                @if (sending)
+                {
+                    <MudProgressCircular Class="ml-2" Color="Color.Default" Indeterminate="true" Size="Size.Small" />
+                }
+            </MudButton>
+        </MudCardActions>
+    </MudForm>
+</MudCard>
+<MudDataGrid Items="@pings" Breakpoint="Breakpoint.Sm" Class="pa-4 mt-4">
     <Columns>
         <TemplateColumn Title="Ping">
             <CellTemplate>
@@ -47,10 +63,40 @@
 </MudDataGrid>
 
 @code {
+    private string pingUrl = string.Empty;
+    private bool sending = false;
     private IEnumerable<PingApiModel> pings = [];
 
     protected override async Task OnInitializedAsync()
     {
         pings = await pingsService.GetPingsAsync();
+    }
+
+    private async Task SendPing()
+    {
+        sending = true;
+        await Task.Delay(1);
+
+        try
+        {
+            var success = await pingsService.SendPingAsync(pingUrl);
+
+            if (success)
+            {
+                pingUrl = string.Empty;
+                pings = await pingsService.GetPingsAsync();
+            }
+            else
+            {
+                Snackbar.Add($"Failure when sending ping", Severity.Error);
+            }
+        }
+        catch (Exception exception)
+        {
+            Snackbar.Add($"Exception when sending ping: {exception.Message}", Severity.Error);
+        }
+
+        sending = false;
+        await Task.Delay(1);
     }
 }

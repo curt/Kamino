@@ -5,6 +5,7 @@ using Kamino.Admin.Components.Account;
 using Kamino.Admin.Services;
 using Kamino.Shared.Entities;
 using Kamino.Shared.Repo;
+using Kamino.Shared.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -26,9 +27,7 @@ builder.Services.AddScoped<
     PersistingServerAuthenticationStateProvider
 >();
 
-builder
-    .Services.AddAuthorizationBuilder()
-    .AddPolicy("IsProfileOwner", policy => policy.RequireClaim("Owner"));
+builder.Services.AddAuthorizationBuilder();
 
 builder
     .Services.AddAuthentication(options =>
@@ -66,12 +65,21 @@ builder
     .Services.AddIdentityCore<ApplicationUser>(options =>
         options.SignIn.RequireConfirmedAccount = true
     )
+    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<NpgsqlContext>()
     .AddSignInManager()
     .AddDefaultTokenProviders();
 
-builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
-builder.Services.AddTransient<IPingsService, PingsServerService>();
+// Add services to the container.
+builder
+    .Services.AddHttpContextAccessor()
+    .AddHttpClient()
+    .AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>()
+    .AddSingleton<IdentifierProvider>()
+    .AddTransient<LocalKeyProvider>()
+    .AddTransient<SignedHttpPostService>()
+    .AddTransient<ActivityPubService>()
+    .AddTransient<IPingsService, PingsServerService>();
 
 builder.Services.AddControllers();
 

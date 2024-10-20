@@ -9,4 +9,13 @@ public class PingsClientService(HttpClient httpClient) : IPingsService
     {
         return await httpClient.GetFromJsonAsync<IEnumerable<PingApiModel>>("api/pings") ?? [];
     }
+
+    public async Task<bool> SendPingAsync(string toUri)
+    {
+        var response = await httpClient.PostAsJsonAsync(
+            "api/pings",
+            new PingApiModel { ToUri = toUri }
+        );
+        return response.IsSuccessStatusCode;
+    }
 }
